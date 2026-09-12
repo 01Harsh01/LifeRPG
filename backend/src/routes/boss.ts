@@ -45,8 +45,8 @@ const BOSS_CATALOG = [
   },
 ];
 
-// GET /api/boss/active - Gets or spawns active boss for user
-router.get("/active", asyncHandler(async (req: AuthedRequest, res) => {
+// GET /api/boss/active & GET /api/boss - Gets or spawns active boss for user
+const getActiveBossHandler = asyncHandler(async (req: AuthedRequest, res) => {
   const userId = req.userId!;
 
   let boss = await prisma.userBoss.findFirst({
@@ -81,10 +81,13 @@ router.get("/active", asyncHandler(async (req: AuthedRequest, res) => {
     defeatedCount,
     totalBossesInRealm: BOSS_CATALOG.length,
   });
-}));
+});
 
-// POST /api/boss/attack - Deal direct damage (e.g. from Focus Pomodoro sessions)
-router.post("/attack", asyncHandler(async (req: AuthedRequest, res) => {
+router.get("/", getActiveBossHandler);
+router.get("/active", getActiveBossHandler);
+
+// POST /api/boss/attack & POST /api/boss/strike - Deal direct damage (e.g. from Focus Pomodoro sessions)
+const attackBossHandler = asyncHandler(async (req: AuthedRequest, res) => {
   const userId = req.userId!;
   const { damage = 40, source = "Focus Session" } = req.body;
 
@@ -139,6 +142,9 @@ router.post("/attack", asyncHandler(async (req: AuthedRequest, res) => {
     goldAwarded: defeated ? boss.goldReward : 0,
     xpAwarded: defeated ? boss.xpReward : 0,
   });
-}));
+});
+
+router.post("/attack", attackBossHandler);
+router.post("/strike", attackBossHandler);
 
 export default router;
