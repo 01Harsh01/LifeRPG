@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    scrollbar-color: #6366f1 #12121e;
+  }
+  body {
+    background: radial-gradient(ellipse at top, #16162a 0%, #0b0b14 60%);
+    min-height: 100vh;
+  }
+  :focus-visible {
+    outline: 2px solid #e8b64f;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface/80 border border-white/5 rounded-2xl backdrop-blur-sm;
+  }
+  .card-glow {
+    @apply card shadow-glow border-arcane/30;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-arcane to-arcane2 px-5 py-2.5 font-semibold text-white shadow-glow transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 font-semibold text-slate-100 transition hover:bg-white/10;
+  }
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-yellow-500 px-5 py-2.5 font-semibold text-void shadow-goldGlow transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+  }
+  .input {
+    @apply w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-arcane focus:ring-1 focus:ring-arcane outline-none transition;
+  }
+  .label {
+    @apply block text-sm font-medium text-slate-300 mb-1.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
