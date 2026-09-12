@@ -1,4 +1,5 @@
-const BASE = (import.meta.env.VITE_API_URL as string | undefined) || "/api";
+const RAW_URL = (import.meta.env.VITE_API_URL as string | undefined)?.trim().replace(/\/+$/, "");
+const BASE = RAW_URL ? (RAW_URL.endsWith("/api") ? RAW_URL : `${RAW_URL}/api`) : "/api";
 
 export class ApiError extends Error {
   status: number;
@@ -36,11 +37,20 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${BASE}${path}`, {
-    ...options,
-    credentials: "include",
-    headers,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      ...options,
+      credentials: "include",
+      headers,
+    });
+  } catch (err: any) {
+    if (err instanceof ApiError) throw err;
+    throw new ApiError(
+      0,
+      "Unable to reach the server. The backend may be waking up (please wait ~30 seconds) or check your connection."
+    );
+  }
 
   let body: any = null;
   try {

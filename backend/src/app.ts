@@ -17,11 +17,19 @@ import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 const app = express();
 
-app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:5173",
-  credentials: true,
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
 }));
+app.use(cors({
+  origin: (_origin, callback) => {
+    // Reflect requesting origin to allow credentials from any Vercel domain or localhost
+    callback(null, true);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+}));
+app.options("*", cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
@@ -30,22 +38,28 @@ const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500 });
 app.use("/api", limiter);
 
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
-app.use("/api/auth/login", authLimiter);
-app.use("/api/auth/register", authLimiter);
+app.use(["/api/auth/login", "/auth/login"], authLimiter);
+app.use(["/api/auth/register", "/auth/register"], authLimiter);
 
 app.get("/", (_req, res) => res.json({ name: "Life RPG API", status: "online", health: "/api/health" }));
 app.get("/api", (_req, res) => res.json({ name: "Life RPG API", status: "online", health: "/api/health" }));
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
+app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
-app.use("/api/auth", authRoutes);
-app.use("/api/quests", questRoutes);
-app.use("/api/character", characterRoutes);
-app.use("/api/shop", shopRoutes);
-app.use("/api/inventory", inventoryRoutes);
-app.use("/api/achievements", achievementRoutes);
-app.use("/api/activity", activityRoutes);
-app.use("/api/boss", bossRoutes);
-app.use("/api/skills", skillRoutes);
+const mountRoutes = (prefix: string) => {
+  app.use(`${prefix}/auth`, authRoutes);
+  app.use(`${prefix}/quests`, questRoutes);
+  app.use(`${prefix}/character`, characterRoutes);
+  app.use(`${prefix}/shop`, shopRoutes);
+  app.use(`${prefix}/inventory`, inventoryRoutes);
+  app.use(`${prefix}/achievements`, achievementRoutes);
+  app.use(`${prefix}/activity`, activityRoutes);
+  app.use(`${prefix}/boss`, bossRoutes);
+  app.use(`${prefix}/skills`, skillRoutes);
+};
+
+mountRoutes("/api");
+mountRoutes("");
 
 app.use(notFoundHandler);
 app.use(errorHandler);
