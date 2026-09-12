@@ -23,6 +23,7 @@ import { RewardPopup } from "../components/RewardPopup";
 import { PageSkeleton } from "../components/LoadingSkeleton";
 import { useToast } from "../components/Toast";
 import { playCoinSound } from "../utils/sound";
+import { fireConfetti } from "../utils/confetti";
 import type {
   Attributes,
   Character,
@@ -33,7 +34,7 @@ import type {
 } from "../types";
 
 export default function Dashboard() {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, updateUserOptimistically } = useAuth();
   const toast = useToast();
   const [character, setCharacter] = useState<Character | null>(null);
   const [quests, setQuests] = useState<Quest[]>([]);
@@ -68,10 +69,26 @@ export default function Dashboard() {
 
   async function handleComplete(id: string) {
     const prevQuests = quests;
+    const target = quests.find((q) => q.id === id);
+
+    // Instant optimistic update
     setQuests((qs) => qs.map((q) => (q.id === id ? { ...q, completed: true } : q)));
+    if (target) {
+      updateUserOptimistically((prev) =>
+        prev
+          ? {
+              ...prev,
+              gold: prev.gold + target.goldReward,
+              xp: prev.xp + target.xpReward,
+            }
+          : null
+      );
+    }
+
     setCompletingId(id);
     try {
       const result = await api.post<CompleteQuestResult>(`/quests/${id}/complete`);
+      fireConfetti(45);
       setReward({ xp: result.xpGained, gold: result.goldGained, attrs: result.attributeGained });
       if (result.leveledUp) setLevelUp(result);
       if (result.newAchievements.length) {
@@ -80,6 +97,7 @@ export default function Dashboard() {
       await Promise.all([loadAll(), refreshUser()]);
     } catch (e) {
       setQuests(prevQuests);
+      await refreshUser();
       toast.push(e instanceof ApiError ? e.message : "Could not complete quest.", "error");
     } finally {
       setCompletingId(null);
@@ -135,6 +153,7 @@ export default function Dashboard() {
           <CharacterCard
             user={{
               ...user,
+              avatarUrl: character.avatarUrl || user.avatarUrl,
               gold: character.gold,
               level: character.level,
               currentStreak: character.currentStreak,

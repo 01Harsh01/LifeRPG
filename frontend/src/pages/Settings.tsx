@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Volume2, VolumeX, Sparkles, Keyboard, Moon, Sun, Check } from "lucide-react";
+import { Volume2, VolumeX, Sparkles, Keyboard, Moon, Sun, Check, Camera, Image, Shield, Trash2, Edit3 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../components/Toast";
 import { useTheme, Theme } from "../context/ThemeContext";
+import { api } from "../services/api";
+import { UserAvatar } from "../components/UserAvatar";
+import { ProfilePictureModal } from "../components/ProfilePictureModal";
+import { RPG_AVATAR_PRESETS } from "../utils/avatarPresets";
+import type { ShopItem } from "../types";
 import {
   isSoundEnabled,
   setSoundEnabled,
@@ -15,15 +20,49 @@ import {
 import { KeyboardShortcutsModal } from "../components/KeyboardShortcutsModal";
 
 export default function Settings() {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const toast = useToast();
   const navigate = useNavigate();
   const { theme, setTheme } = useTheme();
 
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [equippedItems, setEquippedItems] = useState<ShopItem[]>([]);
+
+  useEffect(() => {
+    api
+      .get<{ character: { equippedItems: ShopItem[] } }>("/character")
+      .then((r) => setEquippedItems(r.character.equippedItems || []))
+      .catch(() => {});
+  }, []);
 
   if (!user) return null;
+
+  const equippedAvatarItem = equippedItems.find((i) => i.type === "Avatar") || null;
+
+  async function handleQuickPresetSelect(icon: string) {
+    playClickSound();
+    try {
+      await api.put("/character/avatar", { avatarUrl: icon });
+      await refreshUser();
+      playLevelUpSound();
+      toast.push(`Switched portrait to ${icon}! ✨`, "success");
+    } catch {
+      toast.push("Could not update portrait.", "error");
+    }
+  }
+
+  async function handleResetAvatar() {
+    playClickSound();
+    try {
+      await api.put("/character/avatar", { avatarUrl: null });
+      await refreshUser();
+      toast.push("Profile picture reset to default.", "info");
+    } catch {
+      toast.push("Could not reset portrait.", "error");
+    }
+  }
 
   function handleToggleSound() {
     const next = !soundOn;
@@ -52,10 +91,122 @@ export default function Settings() {
     <div className="max-w-xl mx-auto px-4 md:px-8 py-6 md:py-10 space-y-6">
       <div>
         <h1 className="font-display text-2xl font-bold text-slate-900 dark:text-white">Hero's Sanctum & Settings</h1>
-        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Configure your game experience, audio, and visual theme</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Configure your game experience, audio, and hero identity</p>
       </div>
 
-      {/* Profile Summary */}
+      {/* Profile Picture & Hero Portrait Section */}
+      <div className="card p-6 space-y-5 border-arcane/30 shadow-glow">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">🛡️</span>
+            <div>
+              <h2 className="font-display text-base font-bold text-slate-900 dark:text-white">
+                Hero Portrait & Profile Picture
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Customise how you appear on character cards, leaderboards, and navigation
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setAvatarModalOpen(true)}
+            className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5"
+          >
+            <Camera size={14} /> Change Photo
+          </button>
+        </div>
+
+        {/* Current Avatar Card */}
+        <div className="flex items-center justify-between p-4 rounded-2xl bg-black/5 dark:bg-black/30 border border-white/5 flex-wrap gap-4">
+          <div className="flex items-center gap-4">
+            <div className="relative group cursor-pointer" onClick={() => setAvatarModalOpen(true)}>
+              <UserAvatar
+                avatarUrl={user.avatarUrl}
+                name={user.name}
+                size="lg"
+                equippedAvatar={equippedAvatarItem}
+              />
+              <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                <Camera size={18} />
+              </div>
+            </div>
+            <div>
+              <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                {user.name}
+                {user.avatarUrl && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-arcane/20 text-arcane border border-arcane/30">
+                    Custom Portrait
+                  </span>
+                )}
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">{user.email}</p>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                {user.avatarUrl
+                  ? user.avatarUrl.startsWith("http")
+                    ? "Custom Web Image"
+                    : user.avatarUrl.startsWith("data:")
+                    ? "Uploaded Photo"
+                    : "Hero Icon Preset"
+                  : equippedAvatarItem
+                  ? `Equipped Shop Item: ${equippedAvatarItem.name}`
+                  : "Default Initial Avatar"}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setAvatarModalOpen(true)}
+              className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1"
+            >
+              <Edit3 size={13} /> Edit
+            </button>
+            {user.avatarUrl && (
+              <button
+                onClick={handleResetAvatar}
+                title="Reset to default initial"
+                className="btn-secondary text-xs px-2.5 py-1.5 text-red-400 hover:bg-red-500/10"
+              >
+                <Trash2 size={13} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Quick Pick Hero Presets */}
+        <div className="space-y-2">
+          <p className="text-[11px] uppercase font-bold tracking-wider text-slate-400">
+            Quick Hero Presets
+          </p>
+          <div className="flex items-center gap-2 flex-wrap">
+            {RPG_AVATAR_PRESETS.slice(0, 8).map((preset) => {
+              const isSelected = user.avatarUrl === preset.icon;
+              return (
+                <button
+                  key={preset.id}
+                  onClick={() => handleQuickPresetSelect(preset.icon)}
+                  title={preset.label}
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl transition transform hover:scale-105 ${
+                    isSelected
+                      ? "bg-gold/25 border-2 border-gold shadow-[0_0_12px_rgba(232,182,79,0.4)]"
+                      : "bg-white/5 border border-white/10 hover:border-arcane/40"
+                  }`}
+                >
+                  {preset.icon}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => setAvatarModalOpen(true)}
+              className="px-3 h-10 rounded-xl bg-white/5 border border-white/10 hover:border-gold/40 text-xs font-semibold text-slate-300 hover:text-gold transition flex items-center gap-1.5"
+            >
+              <Sparkles size={13} /> More ({RPG_AVATAR_PRESETS.length}+)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Profile Summary Stats */}
       <div className="card p-6 space-y-4">
         <div className="flex items-center gap-3 pb-3 border-b border-black/5 dark:border-white/5">
           <div className="h-12 w-12 rounded-xl bg-arcane/20 border border-arcane/40 flex items-center justify-center text-xl">
@@ -209,6 +360,11 @@ export default function Settings() {
       </button>
 
       <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <ProfilePictureModal
+        isOpen={avatarModalOpen}
+        onClose={() => setAvatarModalOpen(false)}
+        equippedItems={equippedItems}
+      />
     </div>
   );
 }

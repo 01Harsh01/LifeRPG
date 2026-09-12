@@ -2,6 +2,7 @@ import { Router } from "express";
 import { prisma } from "../prisma";
 import { requireAuth, AuthedRequest } from "../middleware/auth";
 import { asyncHandler, AppError } from "../middleware/errorHandler";
+import { computeLevelFromXp } from "../services/xp";
 
 const router = Router();
 router.use(requireAuth);
@@ -122,11 +123,15 @@ const attackBossHandler = asyncHandler(async (req: AuthedRequest, res) => {
     });
 
     if (defeated) {
+      const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+      const newXp = user.xp + boss.xpReward;
+      const levelInfo = computeLevelFromXp(newXp);
       await tx.user.update({
         where: { id: userId },
         data: {
           gold: { increment: boss.goldReward },
-          xp: { increment: boss.xpReward },
+          xp: newXp,
+          level: levelInfo.level,
           skillPoints: { increment: 1 },
         },
       });

@@ -1,6 +1,8 @@
+import { Camera } from "lucide-react";
 import { XPBar } from "./XPBar";
 import { GoldCounter } from "./GoldCounter";
 import { StreakBadge } from "./StreakCard";
+import { UserAvatar } from "./UserAvatar";
 import type { User, ShopItem } from "../types";
 
 export function CharacterCard({
@@ -8,11 +10,13 @@ export function CharacterCard({
   xpIntoLevel,
   xpForNextLevel,
   equippedItems = [],
+  onEditAvatar,
 }: {
   user: User;
   xpIntoLevel: number;
   xpForNextLevel: number;
   equippedItems?: ShopItem[];
+  onEditAvatar?: () => void;
 }) {
   const avatarItem = equippedItems.find((i) => i.type === "Avatar");
   const titleItem = equippedItems.find((i) => i.type === "Title");
@@ -32,10 +36,24 @@ export function CharacterCard({
     <div className="card-glow p-6 relative overflow-hidden">
       <div className="flex items-start justify-between flex-wrap gap-4 relative z-10">
         <div className="flex items-center gap-4">
-          <div
-            className={`h-16 w-16 rounded-2xl bg-gradient-to-br from-arcane via-indigo-600 to-arcane2 flex items-center justify-center text-3xl font-display transition-all ${frameClass}`}
-          >
-            {avatarItem ? avatarItem.icon : user.name.charAt(0).toUpperCase()}
+          <div className="relative group">
+            <UserAvatar
+              avatarUrl={user.avatarUrl}
+              name={user.name}
+              size="lg"
+              equippedAvatar={avatarItem}
+              borderClass={frameClass}
+            />
+            {onEditAvatar && (
+              <button
+                type="button"
+                onClick={onEditAvatar}
+                title="Change Hero Portrait"
+                className="absolute -bottom-1 -right-1 p-1.5 rounded-full bg-arcane text-white hover:bg-gold hover:text-black border border-white/20 shadow-md transition transform group-hover:scale-110"
+              >
+                <Camera size={13} />
+              </button>
+            )}
           </div>
           <div>
             <div className="flex items-center gap-2">

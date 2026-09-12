@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
+import { Sparkles, Camera } from "lucide-react";
 import { api } from "../services/api";
 import { CharacterCard } from "../components/CharacterCard";
 import { AttributeCard } from "../components/AttributeCard";
 import { PageSkeleton } from "../components/LoadingSkeleton";
+import { ProfilePictureModal } from "../components/ProfilePictureModal";
 import type { Character as CharacterType } from "../types";
 
 export default function Character() {
   const [character, setCharacter] = useState<CharacterType | null>(null);
   const [loading, setLoading] = useState(true);
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
 
   useEffect(() => {
     api.get<{ character: CharacterType }>("/character").then((r) => setCharacter(r.character)).finally(() => setLoading(false));
@@ -17,12 +20,43 @@ export default function Character() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 md:px-8 py-6 md:py-10 space-y-8">
-      <h1 className="font-display text-2xl">Character</h1>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="font-display text-2xl">Character</h1>
+          <p className="text-xs text-slate-400 mt-0.5">Your hero progression, attributes, and avatar portrait</p>
+        </div>
+        <button
+          onClick={() => setAvatarModalOpen(true)}
+          className="btn-primary text-xs px-4 py-2 flex items-center gap-2"
+        >
+          <Camera size={15} /> Change Hero Portrait
+        </button>
+      </div>
+
       <CharacterCard
-        user={{ id: character.id, name: character.name, email: "", level: character.level, gold: character.gold, xp: character.xp, currentStreak: character.currentStreak }}
+        user={{
+          id: character.id,
+          name: character.name,
+          email: "",
+          avatarUrl: character.avatarUrl,
+          level: character.level,
+          gold: character.gold,
+          xp: character.xp,
+          currentStreak: character.currentStreak,
+        }}
         xpIntoLevel={character.xpIntoLevel}
         xpForNextLevel={character.xpForNextLevel}
         equippedItems={character.equippedItems}
+        onEditAvatar={() => setAvatarModalOpen(true)}
+      />
+
+      <ProfilePictureModal
+        isOpen={avatarModalOpen}
+        onClose={() => setAvatarModalOpen(false)}
+        equippedItems={character.equippedItems}
+        onAvatarUpdated={(newAvatarUrl) => {
+          setCharacter((prev) => (prev ? { ...prev, avatarUrl: newAvatarUrl } : null));
+        }}
       />
 
       <section>

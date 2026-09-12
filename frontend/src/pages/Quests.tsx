@@ -220,7 +220,7 @@ function QuestFormModal({
 }
 
 export default function Quests() {
-  const { refreshUser } = useAuth();
+  const { refreshUser, updateUserOptimistically } = useAuth();
   const toast = useToast();
   const [quests, setQuests] = useState<Quest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -257,7 +257,22 @@ export default function Quests() {
   async function handleComplete(id: string) {
     setCompletingId(id);
     const prev = quests;
+    const targetQuest = quests.find((q) => q.id === id);
+
+    // Instant optimistic update for 0ms latency feeling
     setQuests((qs) => qs.map((q) => (q.id === id ? { ...q, completed: true } : q)));
+    if (targetQuest) {
+      updateUserOptimistically((prevUser) =>
+        prevUser
+          ? {
+              ...prevUser,
+              gold: prevUser.gold + targetQuest.goldReward,
+              xp: prevUser.xp + targetQuest.xpReward,
+            }
+          : null
+      );
+    }
+
     try {
       const result = await api.post<CompleteQuestResult>(`/quests/${id}/complete`);
       fireConfetti(45);
@@ -269,6 +284,7 @@ export default function Quests() {
       await Promise.all([load(), refreshUser()]);
     } catch (e) {
       setQuests(prev);
+      await refreshUser();
       toast.push(e instanceof ApiError ? e.message : "Could not complete quest.", "error");
     } finally {
       setCompletingId(null);
@@ -277,11 +293,15 @@ export default function Quests() {
 
   async function handleDelete() {
     if (!deleteId) return;
+    const prev = quests;
+    // Optimistic delete
+    setQuests((qs) => qs.filter((q) => q.id !== deleteId));
     try {
       await api.del(`/quests/${deleteId}`);
       toast.push("Quest removed from journal.", "success");
       await load();
     } catch (e) {
+      setQuests(prev);
       toast.push(e instanceof ApiError ? e.message : "Could not delete quest.", "error");
     } finally {
       setDeleteId(null);

@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { api, ApiError } from "../services/api";
+import { computeLevelFromXp } from "../utils/xp";
 import type { User } from "../types";
 
 interface AuthContextValue {
@@ -11,9 +12,19 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   clearError: () => void;
+  updateUserOptimistically: (updater: (prev: User | null) => User | null) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+function normalizeUser(u: User | null): User | null {
+  if (!u) return null;
+  const computed = computeLevelFromXp(u.xp).level;
+  return {
+    ...u,
+    level: Math.max(u.level || 1, computed),
+  };
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -23,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshUser = useCallback(async () => {
     try {
       const data = await api.get<{ user: User }>("/auth/me");
-      setUser(data.user);
+      setUser(normalizeUser(data.user));
     } catch {
       setUser(null);
     }
@@ -37,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     try {
       const data = await api.post<{ user: User }>("/auth/login", { email, password });
-      setUser(data.user);
+      setUser(normalizeUser(data.user));
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Login failed.");
       throw e;
@@ -48,7 +59,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     try {
       const data = await api.post<{ user: User }>("/auth/register", { name, email, password, confirmPassword });
-      setUser(data.user);
+      setUser(normalizeUser(data.user));
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Signup failed.");
       throw e;
@@ -62,8 +73,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const clearError = useCallback(() => setError(null), []);
 
+  const updateUserOptimistically = useCallback((updater: (prev: User | null) => User | null) => {
+    setUser((prev) => normalizeUser(updater(prev)));
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, register, logout, refreshUser, clearError }}>
+    <AuthContext.Provider value={{ user, loading, error, login, register, logout, refreshUser, clearError, updateUserOptimistically }}>
       {children}
     </AuthContext.Provider>
   );

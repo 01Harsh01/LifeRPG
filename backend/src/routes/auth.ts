@@ -5,6 +5,7 @@ import { prisma } from "../prisma";
 import { signToken } from "../utils/jwt";
 import { asyncHandler, AppError } from "../middleware/errorHandler";
 import { requireAuth, AuthedRequest } from "../middleware/auth";
+import { computeLevelFromXp } from "../services/xp";
 
 const router = Router();
 
@@ -53,7 +54,7 @@ router.post("/register", asyncHandler(async (req, res) => {
   res.cookie("token", token, COOKIE_OPTIONS);
   res.status(201).json({
     token,
-    user: { id: user.id, name: user.name, email: user.email, level: user.level, xp: user.xp, gold: user.gold },
+    user: { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl, level: user.level, xp: user.xp, gold: user.gold },
   });
 }));
 
@@ -79,11 +80,19 @@ router.post("/login", asyncHandler(async (req, res) => {
     throw new AppError(401, "Incorrect email or password.");
   }
 
+  const levelInfo = computeLevelFromXp(user.xp);
+  if (user.level !== levelInfo.level) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { level: levelInfo.level },
+    });
+  }
+
   const token = signToken({ userId: user.id });
   res.cookie("token", token, COOKIE_OPTIONS);
   res.json({
     token,
-    user: { id: user.id, name: user.name, email: user.email, level: user.level, xp: user.xp, gold: user.gold },
+    user: { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl, level: levelInfo.level, xp: user.xp, gold: user.gold },
   });
 }));
 
@@ -95,11 +104,26 @@ router.post("/logout", (_req, res) => {
 router.get("/me", requireAuth, asyncHandler(async (req: AuthedRequest, res) => {
   const user = await prisma.user.findUnique({ where: { id: req.userId! } });
   if (!user) throw new AppError(404, "User not found.");
+
+  const levelInfo = computeLevelFromXp(user.xp);
+  if (user.level !== levelInfo.level) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { level: levelInfo.level },
+    });
+  }
+
   res.json({
     user: {
-      id: user.id, name: user.name, email: user.email,
-      level: user.level, xp: user.xp, gold: user.gold,
-      currentStreak: user.currentStreak, longestStreak: user.longestStreak,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      level: levelInfo.level,
+      xp: user.xp,
+      gold: user.gold,
+      currentStreak: user.currentStreak,
+      longestStreak: user.longestStreak,
     },
   });
 }));

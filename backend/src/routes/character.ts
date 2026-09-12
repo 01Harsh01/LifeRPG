@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { z } from "zod";
 import { prisma } from "../prisma";
 import { requireAuth, AuthedRequest } from "../middleware/auth";
 import { asyncHandler, AppError } from "../middleware/errorHandler";
@@ -38,6 +39,7 @@ router.get("/", asyncHandler(async (req: AuthedRequest, res) => {
     character: {
       id: user.id,
       name: user.name,
+      avatarUrl: user.avatarUrl,
       level: levelInfo.level,
       xp: user.xp,
       xpIntoLevel: levelInfo.xpIntoLevel,
@@ -241,11 +243,16 @@ router.post("/streak-redeem", asyncHandler(async (req: AuthedRequest, res) => {
   }
 
   await prisma.$transaction(async (tx: any) => {
+    const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+    const newXp = user.xp + 150;
+    const levelInfo = computeLevelFromXp(newXp);
+
     await tx.user.update({
       where: { id: userId },
       data: {
         gold: { increment: 75 },
-        xp: { increment: 150 },
+        xp: newXp,
+        level: levelInfo.level,
       },
     });
 
@@ -340,11 +347,16 @@ router.post("/daily-bounty", asyncHandler(async (req: AuthedRequest, res) => {
   }
 
   await prisma.$transaction(async (tx: any) => {
+    const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+    const newXp = user.xp + xp;
+    const levelInfo = computeLevelFromXp(newXp);
+
     await tx.user.update({
       where: { id: userId },
       data: {
         gold: { increment: gold },
-        xp: { increment: xp },
+        xp: newXp,
+        level: levelInfo.level,
       },
     });
 
@@ -375,6 +387,30 @@ router.post("/daily-bounty", asyncHandler(async (req: AuthedRequest, res) => {
     xpGained: xp,
     attributeBonus: attrBonus,
     message: `You opened a ${rarity} Mystery Chest! Claimed +${gold} 🪙 Gold and +${xp} XP!`,
+  });
+}));
+
+// PUT /api/character/avatar - Update user profile picture (image URL, data URI, or preset)
+const avatarSchema = z.object({
+  avatarUrl: z.string().max(3000000).nullable().optional(),
+});
+
+router.put("/avatar", asyncHandler(async (req: AuthedRequest, res) => {
+  const parsed = avatarSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new AppError(400, "Invalid profile picture format or file size too large.");
+  }
+  const avatarUrl = parsed.data.avatarUrl ? parsed.data.avatarUrl.trim() : null;
+
+  const updatedUser = await prisma.user.update({
+    where: { id: req.userId! },
+    data: { avatarUrl },
+  });
+
+  res.json({
+    success: true,
+    avatarUrl: updatedUser.avatarUrl,
+    message: avatarUrl ? "Hero portrait updated successfully!" : "Profile picture reset to default.",
   });
 }));
 

@@ -7,6 +7,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  avatarUrl?: string | null;
   level: number;
   xp: number;
   gold: number;
@@ -43,6 +44,7 @@ export interface Attributes {
 export interface Character {
   id: string;
   name: string;
+  avatarUrl?: string | null;
   level: number;
   xp: number;
   xpIntoLevel: number;
