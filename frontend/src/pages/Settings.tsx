@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Volume2, VolumeX, Sparkles, Keyboard, Shield } from "lucide-react";
+import { Volume2, VolumeX, Sparkles, Keyboard, Moon, Sun, Check } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../components/Toast";
-import { useTheme, ThemeName } from "../context/ThemeContext";
+import { useTheme, Theme } from "../context/ThemeContext";
 import {
   isSoundEnabled,
   setSoundEnabled,
@@ -33,45 +33,52 @@ export default function Settings() {
     toast.push(next ? "Audio effects active 🔊" : "Audio effects muted 🔇", "info");
   }
 
-  const THEMES: { id: ThemeName; name: string; icon: string; border: string }[] = [
-    { id: "obsidian", name: "Obsidian Violet", icon: "🔮", border: "border-purple-500" },
-    { id: "crimson", name: "Crimson Abyss", icon: "🔥", border: "border-red-500" },
-    { id: "emerald", name: "Emerald Grove", icon: "🌿", border: "border-emerald-500" },
-    { id: "cyberpunk", name: "Cyberpunk Neon", icon: "⚡", border: "border-cyan-400" },
-    { id: "gold", name: "Royal Gold", icon: "👑", border: "border-gold" },
+  const THEMES: { id: Theme; name: string; desc: string; icon: string }[] = [
+    {
+      id: "dark",
+      name: "Dark Mode",
+      desc: "Deep obsidian night theme with vibrant neon highlights and low glare.",
+      icon: "🌙",
+    },
+    {
+      id: "light",
+      name: "Light Mode",
+      desc: "Clean bright daytime theme with high-contrast text and crisp card outlines.",
+      icon: "☀️",
+    },
   ];
 
   return (
     <div className="max-w-xl mx-auto px-4 md:px-8 py-6 md:py-10 space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-bold">Hero's Sanctum & Settings</h1>
-        <p className="text-xs text-slate-400 mt-0.5">Configure your game experience, audio, and themes</p>
+        <h1 className="font-display text-2xl font-bold text-slate-900 dark:text-white">Hero's Sanctum & Settings</h1>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">Configure your game experience, audio, and visual theme</p>
       </div>
 
       {/* Profile Summary */}
       <div className="card p-6 space-y-4">
-        <div className="flex items-center gap-3 pb-3 border-b border-white/5">
+        <div className="flex items-center gap-3 pb-3 border-b border-black/5 dark:border-white/5">
           <div className="h-12 w-12 rounded-xl bg-arcane/20 border border-arcane/40 flex items-center justify-center text-xl">
             🛡️
           </div>
           <div>
-            <h3 className="font-semibold text-white">{user.name}</h3>
-            <p className="text-xs text-slate-400 font-mono">{user.email}</p>
+            <h3 className="font-semibold text-slate-900 dark:text-white">{user.name}</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 font-mono">{user.email}</p>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-3">
-          <div className="card p-3 text-center bg-black/20">
-            <p className="text-[11px] text-slate-400 uppercase tracking-wider">Level</p>
+          <div className="card p-3 text-center bg-black/5 dark:bg-black/20">
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 uppercase tracking-wider font-semibold">Level</p>
             <p className="font-display text-xl text-gold font-bold">{user.level}</p>
           </div>
-          <div className="card p-3 text-center bg-black/20">
-            <p className="text-[11px] text-slate-400 uppercase tracking-wider">Gold</p>
+          <div className="card p-3 text-center bg-black/5 dark:bg-black/20">
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 uppercase tracking-wider font-semibold">Gold</p>
             <p className="font-display text-xl text-gold font-bold">{user.gold} 🪙</p>
           </div>
-          <div className="card p-3 text-center bg-black/20">
-            <p className="text-[11px] text-slate-400 uppercase tracking-wider">Streak</p>
-            <p className="font-display text-xl text-orange-400 font-bold">{user.currentStreak ?? 0} 🔥</p>
+          <div className="card p-3 text-center bg-black/5 dark:bg-black/20">
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 uppercase tracking-wider font-semibold">Streak</p>
+            <p className="font-display text-xl text-orange-500 dark:text-orange-400 font-bold">{user.currentStreak ?? 0} 🔥</p>
           </div>
         </div>
       </div>
@@ -80,16 +87,16 @@ export default function Settings() {
       <div className="card p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            {soundOn ? <Volume2 className="text-gold" size={20} /> : <VolumeX className="text-slate-500" size={20} />}
+            {soundOn ? <Volume2 className="text-gold" size={20} /> : <VolumeX className="text-slate-400 dark:text-slate-500" size={20} />}
             <div>
-              <h3 className="text-sm font-semibold text-white">Audio & Procedural Sound FX</h3>
-              <p className="text-xs text-slate-400">Play celebratory sounds on quest completion, coin earnings, and level-ups</p>
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Audio & Procedural Sound FX</h3>
+              <p className="text-xs text-slate-600 dark:text-slate-400">Play celebratory sounds on quest completion, coin earnings, and level-ups</p>
             </div>
           </div>
           <button
             onClick={handleToggleSound}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-              soundOn ? "bg-gold/20 text-gold border border-gold/40" : "btn-secondary text-slate-400"
+              soundOn ? "bg-gold/20 text-gold border border-gold/40" : "btn-secondary text-slate-600 dark:text-slate-400"
             }`}
           >
             {soundOn ? "Enabled" : "Muted"}
@@ -97,8 +104,8 @@ export default function Settings() {
         </div>
 
         {soundOn && (
-          <div className="pt-2 border-t border-white/5">
-            <p className="text-xs text-slate-400 mb-2">Test Synthesized Sound Effects:</p>
+          <div className="pt-2 border-t border-black/5 dark:border-white/5">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mb-2">Test Synthesized Sound Effects:</p>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => playQuestCompleteSound()}
@@ -123,41 +130,62 @@ export default function Settings() {
         )}
       </div>
 
-      {/* Theme Selection */}
+      {/* Theme Selection - ONLY 2 THEMES: DARK MODE & LIGHT MODE */}
       <div className="card p-6 space-y-3">
         <div className="flex items-center gap-2">
           <Sparkles size={18} className="text-arcane" />
-          <h3 className="text-sm font-semibold text-white">Interface Visual Theme</h3>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Interface Visual Theme</h3>
         </div>
-        <p className="text-xs text-slate-400">
-          Themes alter your interface color palette, card glows, and energy aura.
+        <p className="text-xs text-slate-600 dark:text-slate-400">
+          Select your display preference. Both themes are calibrated for crystal-clear text visibility and contrast.
         </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
-          {THEMES.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => {
-                setTheme(t.id);
-                toast.push(`Applied ${t.name}!`, "success");
-              }}
-              className={`card p-3 text-left transition border ${
-                theme === t.id ? `${t.border} bg-white/10 shadow-glow font-bold` : "border-white/10 hover:bg-white/5"
-              }`}
-            >
-              <span className="text-xl">{t.icon}</span>
-              <p className="text-xs mt-1 text-slate-200">{t.name}</p>
-            </button>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          {THEMES.map((t) => {
+            const isSelected = theme === t.id;
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => {
+                  setTheme(t.id);
+                  playClickSound();
+                  toast.push(`Switched to ${t.name}!`, "success");
+                }}
+                className={`p-4 rounded-xl text-left transition border flex items-start gap-3.5 ${
+                  isSelected
+                    ? "border-arcane bg-arcane/10 shadow-glow ring-2 ring-arcane/40 font-bold"
+                    : "border-black/10 dark:border-white/10 bg-black/5 dark:bg-white/5 hover:border-arcane/50"
+                }`}
+              >
+                <div className="text-2xl p-2 rounded-lg bg-black/5 dark:bg-white/10 shrink-0">
+                  {t.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">{t.name}</p>
+                    {isSelected && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-arcane text-white">
+                        <Check size={10} /> Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs mt-1 text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                    {t.desc}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Accessibility & Shortcuts */}
       <div className="card p-6 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <Keyboard size={20} className="text-slate-400" />
+          <Keyboard size={20} className="text-slate-600 dark:text-slate-400" />
           <div>
-            <h3 className="text-sm font-semibold text-white">Keyboard Navigation</h3>
-            <p className="text-xs text-slate-400">View shortcuts for full keyboard accessibility</p>
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Keyboard Navigation</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400">View shortcuts for full keyboard accessibility</p>
           </div>
         </div>
         <button
@@ -175,7 +203,7 @@ export default function Settings() {
           toast.push("Logged out safely.", "info");
           navigate("/login");
         }}
-        className="btn-secondary w-full py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 border-red-500/20"
+        className="btn-secondary w-full py-3 text-sm text-red-500 dark:text-red-400 hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-300 border-red-500/30"
       >
         Log Out of Life RPG
       </button>

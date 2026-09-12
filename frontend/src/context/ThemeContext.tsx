@@ -1,13 +1,15 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-export type ThemeName = "obsidian" | "crimson" | "emerald" | "cyberpunk" | "gold";
-export type ColorMode = "dark" | "light";
+export type Theme = "dark" | "light";
+export type ColorMode = Theme;
+export type ThemeName = Theme;
 
 interface ThemeContextValue {
-  theme: ThemeName;
-  colorMode: ColorMode;
-  setTheme: (theme: ThemeName) => void;
-  setColorMode: (mode: ColorMode) => void;
+  theme: Theme;
+  colorMode: Theme;
+  setTheme: (theme: Theme) => void;
+  setColorMode: (theme: Theme) => void;
+  toggleTheme: () => void;
   toggleColorMode: () => void;
   applyThemeFromItem: (itemName: string) => void;
 }
@@ -15,71 +17,47 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [colorMode, setColorModeState] = useState<ColorMode>(() => {
+  const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("life_rpg_color_mode") as ColorMode | null;
+      const saved = (localStorage.getItem("life_rpg_theme") || localStorage.getItem("life_rpg_color_mode")) as Theme | null;
       if (saved === "light" || saved === "dark") return saved;
+      if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+        return "light";
+      }
     }
     return "dark";
-  });
-
-  const [theme, setThemeState] = useState<ThemeName>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("life_rpg_theme") as ThemeName | null;
-      if (saved) return saved;
-    }
-    return "obsidian";
   });
 
   useEffect(() => {
     if (typeof document !== "undefined") {
       const root = document.documentElement;
-      if (colorMode === "light") {
+      root.removeAttribute("data-theme");
+      if (theme === "light") {
         root.classList.remove("dark");
         root.classList.add("light");
       } else {
         root.classList.remove("light");
         root.classList.add("dark");
       }
-      localStorage.setItem("life_rpg_color_mode", colorMode);
-    }
-  }, [colorMode]);
-
-  useEffect(() => {
-    if (typeof document !== "undefined") {
-      if (theme === "obsidian") {
-        document.documentElement.removeAttribute("data-theme");
-      } else {
-        document.documentElement.setAttribute("data-theme", theme);
-      }
       localStorage.setItem("life_rpg_theme", theme);
+      localStorage.setItem("life_rpg_color_mode", theme);
     }
   }, [theme]);
 
-  function setColorMode(mode: ColorMode) {
-    setColorModeState(mode);
-  }
-
-  function toggleColorMode() {
-    setColorModeState((prev) => (prev === "dark" ? "light" : "dark"));
-  }
-
-  function setTheme(newTheme: ThemeName) {
+  function setTheme(newTheme: Theme) {
     setThemeState(newTheme);
+  }
+
+  function toggleTheme() {
+    setThemeState((prev) => (prev === "dark" ? "light" : "dark"));
   }
 
   function applyThemeFromItem(itemName: string) {
     const lower = itemName.toLowerCase();
-    if (lower.includes("crimson")) {
-      setThemeState("crimson");
-    } else if (lower.includes("emerald")) {
-      setThemeState("emerald");
-    } else if (lower.includes("cyberpunk")) {
-      setThemeState("cyberpunk");
-    } else if (lower.includes("gold")) {
-      setThemeState("gold");
+    if (lower.includes("light") || lower.includes("sun") || lower.includes("day")) {
+      setThemeState("light");
     } else {
-      setThemeState("obsidian");
+      setThemeState("dark");
     }
   }
 
@@ -87,10 +65,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     <ThemeContext.Provider
       value={{
         theme,
-        colorMode,
+        colorMode: theme,
         setTheme,
-        setColorMode,
-        toggleColorMode,
+        setColorMode: setTheme,
+        toggleTheme,
+        toggleColorMode: toggleTheme,
         applyThemeFromItem,
       }}
     >
@@ -100,7 +79,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useTheme() {
-  const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
-  return ctx;
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error("useTheme must be used within a ThemeProvider");
+  }
+  return context;
 }

@@ -36,8 +36,8 @@ export default function Inventory() {
           applyThemeFromItem(res.item.item.name);
           toast.push(`Activated ${res.item.item.name}!`, "success");
         } else {
-          setTheme("obsidian");
-          toast.push("Reverted to Obsidian Theme.", "info");
+          setTheme("dark");
+          toast.push("Reverted to Dark Theme.", "info");
         }
       } else {
         toast.push(res.item.equipped ? `Equipped ${res.item.item.name}!` : `Unequipped ${res.item.item.name}.`, "info");
