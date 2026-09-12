@@ -28,6 +28,11 @@ router.get("/", asyncHandler(async (req: AuthedRequest, res) => {
   });
 
   const rank = computeRank(levelInfo.level);
+  const attrs = user.attributes;
+  const totalAttrSum = attrs
+    ? ((attrs.strength || 0) + (attrs.vitality || 0) + (attrs.intellect || 0) + (attrs.discipline || 0) + (attrs.creativity || 0) + (attrs.social || 0))
+    : 60;
+  const combatPower = (levelInfo.level * 120) + (totalAttrSum * 15) + (user.currentStreak * 30) + (equippedItems.length * 75);
 
   res.json({
     character: {
@@ -45,6 +50,7 @@ router.get("/", asyncHandler(async (req: AuthedRequest, res) => {
       adventureWorld: user.adventureWorld,
       rankTitle: rank.rankTitle,
       rankTier: rank.rankTier,
+      combatPower,
       attributes: user.attributes,
       equippedItems: equippedItems.map((i: any) => i.item),
     },
@@ -261,5 +267,117 @@ router.post("/streak-redeem", asyncHandler(async (req: AuthedRequest, res) => {
   });
 }));
 
+// GET /api/character/daily-bounty - Check if daily mystery loot chest is available
+router.get("/daily-bounty", asyncHandler(async (req: AuthedRequest, res) => {
+  const userId = req.userId!;
+  const today = new Date().toISOString().slice(0, 10);
+
+  const claimedLog = await prisma.activityLog.findFirst({
+    where: {
+      userId,
+      action: "daily_bounty_claimed",
+      createdAt: {
+        gte: new Date(`${today}T00:00:00.000Z`),
+      },
+    },
+  });
+
+  const now = new Date();
+  const midnight = new Date(now);
+  midnight.setHours(24, 0, 0, 0);
+  const secondsLeft = Math.max(0, Math.floor((midnight.getTime() - now.getTime()) / 1000));
+
+  res.json({
+    canClaim: !claimedLog,
+    secondsUntilNextClaim: secondsLeft,
+    lastClaimedAt: claimedLog ? claimedLog.createdAt : null,
+  });
+}));
+
+// POST /api/character/daily-bounty - Open free daily mystery vault chest
+router.post("/daily-bounty", asyncHandler(async (req: AuthedRequest, res) => {
+  const userId = req.userId!;
+  const today = new Date().toISOString().slice(0, 10);
+
+  const claimedLog = await prisma.activityLog.findFirst({
+    where: {
+      userId,
+      action: "daily_bounty_claimed",
+      createdAt: {
+        gte: new Date(`${today}T00:00:00.000Z`),
+      },
+    },
+  });
+
+  if (claimedLog) {
+    throw new AppError(400, "You have already opened today's Daily Mystery Chest! Come back tomorrow.");
+  }
+
+  const roll = Math.random();
+  let rarity: "Common" | "Rare" | "Legendary";
+  let gold: number;
+  let xp: number;
+  let attrBonus: { attr: string; val: number } | null = null;
+
+  if (roll < 0.5) {
+    rarity = "Common";
+    gold = 35;
+    xp = 60;
+  } else if (roll < 0.85) {
+    rarity = "Rare";
+    gold = 75;
+    xp = 140;
+    const attrs = ["strength", "vitality", "intellect", "discipline", "creativity", "social"];
+    const chosen = attrs[Math.floor(Math.random() * attrs.length)];
+    attrBonus = { attr: chosen, val: 1 };
+  } else {
+    rarity = "Legendary";
+    gold = 160;
+    xp = 300;
+    const attrs = ["strength", "vitality", "intellect", "discipline", "creativity", "social"];
+    const chosen = attrs[Math.floor(Math.random() * attrs.length)];
+    attrBonus = { attr: chosen, val: 2 };
+  }
+
+  await prisma.$transaction(async (tx: any) => {
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        gold: { increment: gold },
+        xp: { increment: xp },
+      },
+    });
+
+    if (attrBonus) {
+      await tx.characterAttribute.update({
+        where: { userId },
+        data: {
+          [attrBonus.attr]: { increment: attrBonus.val },
+        },
+      });
+    }
+
+    await tx.activityLog.create({
+      data: {
+        userId,
+        action: "daily_bounty_claimed",
+        message: `Opened 🎁 ${rarity} Daily Mystery Chest! Gained +${gold} 🪙, +${xp} XP${attrBonus ? ` and +${attrBonus.val} ${attrBonus.attr}` : ""}.`,
+        goldGained: gold,
+        xpGained: xp,
+      },
+    });
+  });
+
+  res.json({
+    success: true,
+    rarity,
+    goldGained: gold,
+    xpGained: xp,
+    attributeBonus: attrBonus,
+    message: `You opened a ${rarity} Mystery Chest! Claimed +${gold} 🪙 Gold and +${xp} XP!`,
+  });
+}));
+
 export default router;
+
 

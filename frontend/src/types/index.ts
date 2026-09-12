@@ -55,6 +55,7 @@ export interface Character {
   adventureWorld: number;
   rankTitle: string;
   rankTier: string;
+  combatPower?: number;
   attributes: Attributes;
   equippedItems: ShopItem[];
 }

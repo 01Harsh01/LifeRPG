@@ -15,6 +15,7 @@ import { api, ApiError } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { CharacterCard } from "../components/CharacterCard";
 import { StreakCalendarCard } from "../components/StreakCalendarCard";
+import { DailyMysteryChestCard } from "../components/DailyMysteryChestCard";
 import { AttributeCard } from "../components/AttributeCard";
 import { QuestCard } from "../components/QuestCard";
 import { LevelUpModal } from "../components/LevelUpModal";
@@ -141,6 +142,12 @@ export default function Dashboard() {
             xpIntoLevel={character.xpIntoLevel}
             xpForNextLevel={character.xpForNextLevel}
             equippedItems={character.equippedItems}
+          />
+
+          {/* Daily Mystery Bounty Vault & Combat Power */}
+          <DailyMysteryChestCard
+            combatPower={character.combatPower}
+            onClaimed={loadAll}
           />
         </div>
 
