@@ -33,6 +33,8 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 
+app.get("/", (_req, res) => res.json({ name: "Life RPG API", status: "online", health: "/api/health" }));
+app.get("/api", (_req, res) => res.json({ name: "Life RPG API", status: "online", health: "/api/health" }));
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 
 app.use("/api/auth", authRoutes);
