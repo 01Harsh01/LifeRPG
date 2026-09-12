@@ -14,6 +14,7 @@ import {
 import { api, ApiError } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { CharacterCard } from "../components/CharacterCard";
+import { StreakCalendarCard } from "../components/StreakCalendarCard";
 import { AttributeCard } from "../components/AttributeCard";
 import { QuestCard } from "../components/QuestCard";
 import { LevelUpModal } from "../components/LevelUpModal";
@@ -105,41 +106,48 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-10 space-y-8">
-      {/* Hero Character Card with Rank & Badges */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs px-1">
-          <span className="font-semibold text-gold tracking-wide uppercase flex items-center gap-1.5">
-            <Sparkles size={13} /> {character.rankTitle || "Novice Adventurer"} ({character.rankTier || "Tier I"})
-          </span>
-          <div className="flex items-center gap-2">
-            {character.streakFreezeActive ? (
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                <Snowflake size={12} /> Streak Protected
-              </span>
-            ) : (
-              <button
-                onClick={handleBuyStreakFreeze}
-                disabled={buyingFreeze || character.gold < 100}
-                className="text-[11px] font-semibold text-slate-400 hover:text-gold flex items-center gap-1"
-                title="Spend 100 gold to protect your streak"
-              >
-                <Snowflake size={12} /> {buyingFreeze ? "Protecting..." : "Freeze Streak (100 🪙)"}
-              </button>
-            )}
+      {/* Hero Character Card & LeetCode-style Streak Calendar Grid */}
+      <div className="grid lg:grid-cols-3 gap-6 items-start">
+        <div className="lg:col-span-2 space-y-2">
+          <div className="flex items-center justify-between text-xs px-1">
+            <span className="font-semibold text-gold tracking-wide uppercase flex items-center gap-1.5">
+              <Sparkles size={13} /> {character.rankTitle || "Novice Adventurer"} ({character.rankTier || "Tier I"})
+            </span>
+            <div className="flex items-center gap-2">
+              {character.streakFreezeActive ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                  <Snowflake size={12} /> Streak Protected
+                </span>
+              ) : (
+                <button
+                  onClick={handleBuyStreakFreeze}
+                  disabled={buyingFreeze || character.gold < 100}
+                  className="text-[11px] font-semibold text-slate-400 hover:text-gold flex items-center gap-1"
+                  title="Spend 100 gold to protect your streak"
+                >
+                  <Snowflake size={12} /> {buyingFreeze ? "Protecting..." : "Freeze Streak (100 🪙)"}
+                </button>
+              )}
+            </div>
           </div>
+
+          <CharacterCard
+            user={{
+              ...user,
+              gold: character.gold,
+              level: character.level,
+              currentStreak: character.currentStreak,
+            }}
+            xpIntoLevel={character.xpIntoLevel}
+            xpForNextLevel={character.xpForNextLevel}
+            equippedItems={character.equippedItems}
+          />
         </div>
 
-        <CharacterCard
-          user={{
-            ...user,
-            gold: character.gold,
-            level: character.level,
-            currentStreak: character.currentStreak,
-          }}
-          xpIntoLevel={character.xpIntoLevel}
-          xpForNextLevel={character.xpForNextLevel}
-          equippedItems={character.equippedItems}
-        />
+        {/* LeetCode-style Streak Calendar Card */}
+        <div className="lg:col-span-1 flex justify-center">
+          <StreakCalendarCard onStreakUpdated={loadAll} />
+        </div>
       </div>
 
       {/* Quick RPG Hub & World Boss Banner */}
