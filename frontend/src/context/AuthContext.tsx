@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
-import { api, ApiError } from "../services/api";
+import { api, ApiError, setStoredToken } from "../services/api";
 import { computeLevelFromXp } from "../utils/xp";
 import type { User } from "../types";
 
@@ -47,7 +47,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     setError(null);
     try {
-      const data = await api.post<{ user: User }>("/auth/login", { email, password });
+      const data = await api.post<{ user: User; token?: string }>("/auth/login", { email, password });
+      if (data.token) setStoredToken(data.token);
       setUser(normalizeUser(data.user));
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Login failed.");
@@ -58,7 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = useCallback(async (name: string, email: string, password: string, confirmPassword: string) => {
     setError(null);
     try {
-      const data = await api.post<{ user: User }>("/auth/register", { name, email, password, confirmPassword });
+      const data = await api.post<{ user: User; token?: string }>("/auth/register", { name, email, password, confirmPassword });
+      if (data.token) setStoredToken(data.token);
       setUser(normalizeUser(data.user));
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Signup failed.");
@@ -67,7 +69,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await api.post("/auth/logout");
+    setStoredToken(null);
+    await api.post("/auth/logout").catch(() => {});
     setUser(null);
   }, []);
 

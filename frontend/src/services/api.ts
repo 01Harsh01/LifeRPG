@@ -1,4 +1,4 @@
-const BASE = "/api";
+const BASE = (import.meta.env.VITE_API_URL as string | undefined) || "/api";
 
 export class ApiError extends Error {
   status: number;
@@ -8,14 +8,38 @@ export class ApiError extends Error {
   }
 }
 
+export function setStoredToken(token: string | null) {
+  try {
+    if (token) localStorage.setItem("life_rpg_token", token);
+    else localStorage.removeItem("life_rpg_token");
+  } catch {
+    // ignore storage restrictions
+  }
+}
+
+export function getStoredToken(): string | null {
+  try {
+    return localStorage.getItem("life_rpg_token");
+  } catch {
+    return null;
+  }
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const token = getStoredToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...((options.headers as Record<string, string>) || {}),
+  };
+
+  if (token && !headers["Authorization"]) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${BASE}${path}`, {
     ...options,
     credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
+    headers,
   });
 
   let body: any = null;
