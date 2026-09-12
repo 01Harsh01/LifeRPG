@@ -3,48 +3,59 @@
 @tailwind utilities;
 
 @layer base {
-  /* Default Dark Mode */
-  :root,
-  html.dark {
-    --bg-primary: #0b0b14;
-    --bg-gradient: radial-gradient(ellipse at top, #16162a 0%, #0b0b14 65%);
-    --bg-surface: #12121e;
-    --bg-surface2: #191927;
-    --border-color: rgba(255, 255, 255, 0.09);
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #64748b;
-    --input-bg: rgba(255, 255, 255, 0.05);
-    --input-border: rgba(255, 255, 255, 0.14);
-    --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
-    --color-arcane: 139 92 246; /* #8b5cf6 */
-    --color-arcane2: 99 102 241; /* #6366f1 */
-    --glow-color: rgba(139, 92, 246, 0.35);
+  /* Curated Forest RPG Palette Tokens */
+  :root {
+    --evergreen: #0a210f;
+    --dark-spruce: #14591d;
+    --lime-moss: #99aa38;
+    --pale-amber: #e1e289;
+    --icy-blue: #acd2ed;
   }
 
-  /* Bright Light Mode - High Contrast & Crystal Clear Text */
+  /* Default Dark Mode (Evergreen Forest Night) */
+  :root,
+  html.dark {
+    --bg-primary: #0a210f;
+    --bg-gradient: radial-gradient(ellipse at top, #14591d 0%, #0a210f 70%);
+    --bg-surface: #0e2614;
+    --bg-surface2: #13331b;
+    --border-color: rgba(172, 210, 237, 0.14);
+    --text-primary: #f4f8f4;
+    --text-secondary: #acd2ed;
+    --text-muted: #8ca38f;
+    --input-bg: rgba(10, 33, 15, 0.65);
+    --input-border: rgba(153, 170, 56, 0.28);
+    --card-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.6);
+    --color-arcane: 153 170 56; /* Lime Moss */
+    --color-arcane2: 20 89 29; /* Dark Spruce */
+    --glow-color: rgba(153, 170, 56, 0.35);
+    --gold-color: #e1e289; /* Pale Amber */
+  }
+
+  /* Bright Clean Light Mode - Deep Evergreen & Dark Spruce Text */
   html.light {
-    --bg-primary: #f8fafc;
-    --bg-gradient: radial-gradient(ellipse at top, #ffffff 0%, #f1f5f9 100%);
+    --bg-primary: #f6faf7;
+    --bg-gradient: radial-gradient(ellipse at top, #ffffff 0%, #edf5ef 100%);
     --bg-surface: #ffffff;
-    --bg-surface2: #f8fafc;
-    --border-color: rgba(15, 23, 42, 0.12);
-    --text-primary: #0f172a; /* Deep Slate 900 */
-    --text-secondary: #334155; /* Slate 700 */
-    --text-muted: #64748b; /* Slate 500 */
+    --bg-surface2: #f2f8f3;
+    --border-color: rgba(20, 89, 29, 0.12);
+    --text-primary: #0a210f; /* Deep Evergreen - 100% visible, sharp contrast */
+    --text-secondary: #14591d; /* Dark Spruce */
+    --text-muted: #3f5943;
     --input-bg: #ffffff;
-    --input-border: #cbd5e1;
-    --card-shadow: 0 4px 18px -2px rgba(15, 23, 42, 0.08);
-    --color-arcane: 124 58 237; /* Vibrant Violet */
-    --color-arcane2: 79 70 229; /* Royal Indigo */
-    --glow-color: rgba(124, 58, 237, 0.2);
+    --input-border: #c2d6c6;
+    --card-shadow: 0 4px 18px -2px rgba(10, 33, 15, 0.07);
+    --color-arcane: 20 89 29; /* Dark Spruce */
+    --color-arcane2: 120 135 38; /* Rich Lime Moss */
+    --glow-color: rgba(20, 89, 29, 0.2);
+    --gold-color: #b59b24; /* Amber Gold */
   }
 
   * {
-    scrollbar-color: #6366f1 #12121e;
+    scrollbar-color: #99aa38 #0a210f;
   }
   html.light * {
-    scrollbar-color: #94a3b8 #f1f5f9;
+    scrollbar-color: #14591d #edf5ef;
   }
 
   body {
@@ -55,7 +66,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid #e8b64f;
+    outline: 2px solid var(--lime-moss);
     outline-offset: 2px;
   }
 }
@@ -72,10 +83,10 @@
   .card-glow {
     @apply card;
     box-shadow: 0 0 24px var(--glow-color);
-    border-color: rgb(var(--color-arcane) / 0.35);
+    border-color: rgb(var(--color-arcane) / 0.4);
   }
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-arcane to-arcane2 px-5 py-2.5 font-semibold text-white shadow-glow transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-darkSpruce to-limeMoss px-5 py-2.5 font-bold text-white shadow-glow transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-xl border px-5 py-2.5 font-semibold transition;
@@ -84,10 +95,10 @@
     color: var(--text-primary);
   }
   .btn-secondary:hover {
-    filter: brightness(1.1);
+    filter: brightness(1.12);
   }
   .btn-gold {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-yellow-500 px-5 py-2.5 font-semibold text-slate-900 shadow-goldGlow transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-paleAmber to-limeMoss px-5 py-2.5 font-bold text-evergreen shadow-goldGlow transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
   }
   .input {
     width: 100%;
@@ -100,8 +111,8 @@
     transition: border-color 0.2s, box-shadow 0.2s;
   }
   .input:focus {
-    border-color: rgb(var(--color-arcane));
-    box-shadow: 0 0 0 2px rgb(var(--color-arcane) / 0.2);
+    border-color: var(--lime-moss);
+    box-shadow: 0 0 0 2px rgba(153, 170, 56, 0.25);
   }
   .label {
     display: block;
@@ -114,7 +125,7 @@
 
 /* Light mode high-contrast text and UI elements */
 html.light [class*="text-white"] {
-  color: #0f172a !important;
+  color: #0a210f !important;
 }
 html.light .btn-primary,
 html.light .btn-primary * {
@@ -122,56 +133,58 @@ html.light .btn-primary * {
 }
 html.light .btn-gold,
 html.light .btn-gold * {
-  color: #0f172a !important;
+  color: #0a210f !important;
 }
 html.light [class*="text-slate-100"] {
-  color: #0f172a !important;
+  color: #0a210f !important;
 }
 html.light [class*="text-slate-200"] {
-  color: #1e293b !important;
+  color: #0a210f !important;
 }
 html.light [class*="text-slate-300"] {
-  color: #334155 !important;
+  color: #14591d !important;
 }
 html.light [class*="text-slate-400"] {
-  color: #475569 !important;
+  color: #14591d !important;
 }
 html.light [class*="text-slate-500"] {
-  color: #64748b !important;
+  color: #3f5943 !important;
 }
 html.light aside,
 html.light nav {
-  background-color: rgba(255, 255, 255, 0.96) !important;
-  border-color: rgba(15, 23, 42, 0.1) !important;
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  border-color: rgba(20, 89, 29, 0.1) !important;
 }
 html.light .card {
   background-color: #ffffff !important;
-  border-color: rgba(15, 23, 42, 0.12) !important;
+  background-image: none !important;
+  border-color: rgba(20, 89, 29, 0.12) !important;
+  box-shadow: 0 4px 16px -2px rgba(10, 33, 15, 0.06) !important;
 }
 html.light .divide-white\/5 > * {
-  border-color: rgba(15, 23, 42, 0.08) !important;
+  border-color: rgba(20, 89, 29, 0.08) !important;
 }
 html.light .border-white\/10,
 html.light .border-white\/5 {
-  border-color: rgba(15, 23, 42, 0.1) !important;
+  border-color: rgba(20, 89, 29, 0.1) !important;
 }
 html.light .bg-white\/5,
 html.light .bg-white\/10 {
-  background-color: rgba(15, 23, 42, 0.05) !important;
+  background-color: rgba(20, 89, 29, 0.04) !important;
 }
 html.light .bg-black\/20,
 html.light .bg-black\/30 {
-  background-color: rgba(15, 23, 42, 0.04) !important;
+  background-color: rgba(20, 89, 29, 0.04) !important;
 }
 html.light input,
 html.light textarea,
 html.light select {
   background-color: #ffffff !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
+  border-color: #c2d6c6 !important;
+  color: #0a210f !important;
 }
 html.light ::placeholder {
-  color: #64748b !important;
+  color: #5d7561 !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Sparkles, Gift, Clock, Zap, Award, ChevronRight } from "lucide-react";
+import { Gift, Clock, Zap } from "lucide-react";
 import { api, ApiError } from "../services/api";
 import { useToast } from "./Toast";
 import { playCoinSound, playLevelUpSound, playClickSound } from "../utils/sound";
@@ -91,39 +91,39 @@ export function DailyMysteryChestCard({
   if (loading || !status) {
     return (
       <div className="card p-5 animate-pulse min-h-[160px] flex items-center justify-center">
-        <span className="text-xs text-slate-400">Loading Mystic Vault...</span>
+        <span className="text-xs text-slate-500 dark:text-icyBlue">Loading Mystic Vault...</span>
       </div>
     );
   }
 
   const rarityStyles = {
-    Common: "border-slate-500/40 bg-slate-500/10 text-slate-200",
-    Rare: "border-blue-500/50 bg-blue-500/15 text-blue-300 shadow-[0_0_15px_rgba(59,130,246,0.3)]",
-    Legendary: "border-gold bg-gold/20 text-gold shadow-goldGlow animate-pulse",
+    Common: "border-slate-300 dark:border-white/10 bg-slate-100 dark:bg-black/30 text-slate-800 dark:text-slate-200",
+    Rare: "border-darkSpruce/40 dark:border-icyBlue/50 bg-emerald-50 dark:bg-emerald-950/40 text-darkSpruce dark:text-icyBlue shadow-sm",
+    Legendary: "border-limeMoss dark:border-paleAmber bg-amber-50 dark:bg-limeMoss/20 text-darkSpruce dark:text-paleAmber shadow-md",
   };
 
   return (
-    <div className="card p-5 border border-purple-500/30 dark:border-purple-500/20 bg-gradient-to-br from-[#1c142b] via-[#12121e] to-[#0b0b14] relative overflow-hidden flex flex-col justify-between space-y-4">
-      {/* Background ambient glow */}
-      <div className="absolute -top-10 -right-10 w-36 h-36 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
+    <div className="card p-5 border border-darkSpruce/20 dark:border-limeMoss/25 bg-white dark:bg-[#0e2614] relative overflow-hidden flex flex-col justify-between space-y-3.5 shadow-sm hover:shadow-md transition">
+      {/* Subtle ambient accent */}
+      <div className="absolute -top-12 -right-12 w-32 h-32 bg-limeMoss/10 dark:bg-limeMoss/15 rounded-full blur-2xl pointer-events-none" />
 
       {/* Header with Combat Power Rating */}
       <div className="flex items-start justify-between relative z-10">
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 flex items-center gap-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-darkSpruce dark:text-limeMoss flex items-center gap-1">
             <Gift size={12} /> Daily Mystic Vault
           </span>
-          <h3 className="font-display text-base font-bold text-slate-900 dark:text-white">
+          <h3 className="font-display text-base font-bold text-evergreen dark:text-white mt-0.5">
             Daily Bounty Chest
           </h3>
         </div>
 
         {combatPower !== undefined && (
           <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-purple-500/15 border border-purple-500/30 text-purple-300 shadow-sm"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-darkSpruce/40 border border-emerald-200 dark:border-limeMoss/40 text-darkSpruce dark:text-paleAmber shadow-sm font-bold"
             title="Total Combat Power derived from Level, Attributes, Equipment, and Streak"
           >
-            <Zap size={13} className="text-purple-400" />
+            <Zap size={13} className="text-darkSpruce dark:text-paleAmber" />
             <span className="text-xs font-mono font-bold tracking-tight">
               {combatPower.toLocaleString()} CP
             </span>
@@ -137,25 +137,27 @@ export function DailyMysteryChestCard({
           <div className={`p-3.5 rounded-xl border ${rarityStyles[recentReward.rarity]} space-y-1.5 animate-in zoom-in-95`}>
             <div className="flex items-center justify-between text-xs font-bold">
               <span>🎉 {recentReward.rarity} Chest Opened!</span>
-              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-black/30">Claimed</span>
+              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-black/10 dark:bg-black/40 font-bold">
+                Claimed
+              </span>
             </div>
-            <div className="flex items-center gap-3 text-xs font-semibold">
-              <span className="text-gold">+{recentReward.goldGained} 🪙 Gold</span>
-              <span className="text-purple-300">+{recentReward.xpGained} XP</span>
+            <div className="flex items-center gap-3 text-xs font-bold">
+              <span className="text-darkSpruce dark:text-paleAmber">+{recentReward.goldGained} 🪙 Gold</span>
+              <span className="text-darkSpruce dark:text-icyBlue">+{recentReward.xpGained} XP</span>
               {recentReward.attributeBonus && (
-                <span className="text-emerald-400">
+                <span className="text-emerald-700 dark:text-limeMoss">
                   +{recentReward.attributeBonus.val} {recentReward.attributeBonus.attr}
                 </span>
               )}
             </div>
           </div>
         ) : status.canClaim ? (
-          <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-purple-500/10 border border-purple-500/30">
+          <div className="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-emerald-50 dark:bg-darkSpruce/25 border border-emerald-200 dark:border-limeMoss/30">
             <div className="flex items-center gap-2.5">
               <span className="text-3xl animate-bounce">🎁</span>
               <div>
-                <p className="text-xs font-bold text-slate-900 dark:text-white">Free Reward Ready!</p>
-                <p className="text-[11px] text-slate-400">Contains Gold, XP & Stat buffs</p>
+                <p className="text-xs font-bold text-evergreen dark:text-white">Free Reward Ready!</p>
+                <p className="text-[11px] text-darkSpruce dark:text-icyBlue">Contains Gold, XP & Stat buffs</p>
               </div>
             </div>
             <button
@@ -167,17 +169,17 @@ export function DailyMysteryChestCard({
             </button>
           </div>
         ) : (
-          <div className="flex items-center justify-between p-3 rounded-xl bg-black/20 dark:bg-white/5 border border-black/10 dark:border-white/10">
+          <div className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-black/25 border border-slate-200 dark:border-white/10">
             <div className="flex items-center gap-2.5">
-              <span className="text-2xl opacity-75">🧰</span>
+              <span className="text-2xl opacity-80">🧰</span>
               <div>
-                <p className="text-xs font-semibold text-slate-300">Chest Sealed for Today</p>
-                <p className="text-[11px] text-slate-500 flex items-center gap-1">
-                  <Clock size={11} /> Next reset: {formatTime(secondsLeft)}
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Chest Sealed for Today</p>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 flex items-center gap-1 mt-0.5">
+                  <Clock size={12} className="text-slate-500" /> Next reset: {formatTime(secondsLeft)}
                 </p>
               </div>
             </div>
-            <span className="text-[11px] font-bold text-slate-400 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+            <span className="text-[11px] font-bold text-darkSpruce dark:text-limeMoss bg-emerald-50 dark:bg-limeMoss/15 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-limeMoss/30">
               Claimed ✔
             </span>
           </div>
@@ -185,9 +187,9 @@ export function DailyMysteryChestCard({
       </div>
 
       {/* Footer info line */}
-      <div className="flex items-center justify-between text-[11px] text-slate-400 relative z-10 pt-1 border-t border-black/5 dark:border-white/5">
+      <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 relative z-10 pt-1.5 border-t border-slate-100 dark:border-white/5">
         <span>Resets daily at 00:00 UTC</span>
-        <span className="text-purple-400 font-medium">Up to +160 Gold & +300 XP</span>
+        <span className="text-darkSpruce dark:text-limeMoss font-bold">Up to +160 Gold & +300 XP</span>
       </div>
     </div>
   );

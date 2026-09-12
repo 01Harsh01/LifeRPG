@@ -5,20 +5,25 @@ export default {
   theme: {
     extend: {
       colors: {
-        void: "var(--bg-primary, #0b0b14)",
-        surface: "var(--bg-surface, #12121e)",
-        surface2: "var(--bg-surface2, #191927)",
-        gold: "#e8b64f",
-        arcane: "rgb(var(--color-arcane, 139 92 246) / <alpha-value>)",
-        arcane2: "rgb(var(--color-arcane2, 99 102 241) / <alpha-value>)",
+        void: "var(--bg-primary, #0a210f)",
+        surface: "var(--bg-surface, #0f2b16)",
+        surface2: "var(--bg-surface2, #14381e)",
+        evergreen: "#0a210f",
+        darkSpruce: "#14591d",
+        limeMoss: "#99aa38",
+        paleAmber: "#e1e289",
+        icyBlue: "#acd2ed",
+        gold: "var(--gold-color, #e1e289)",
+        arcane: "rgb(var(--color-arcane, 153 170 56) / <alpha-value>)",
+        arcane2: "rgb(var(--color-arcane2, 20 89 29) / <alpha-value>)",
       },
       fontFamily: {
         display: ["'Cinzel'", "serif"],
         body: ["'Inter'", "sans-serif"],
       },
       boxShadow: {
-        glow: "0 0 22px var(--glow-color, rgba(139, 92, 246, 0.35))",
-        goldGlow: "0 0 20px rgba(232, 182, 79, 0.35)",
+        glow: "0 0 22px var(--glow-color, rgba(153, 170, 56, 0.35))",
+        goldGlow: "0 0 20px rgba(225, 226, 137, 0.35)",
       },
       keyframes: {
         shimmer: {
