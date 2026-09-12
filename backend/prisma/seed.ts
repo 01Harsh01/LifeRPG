@@ -5,6 +5,9 @@ const prisma = new PrismaClient();
 async function main() {
   const shopItems = [
     { name: "Obsidian Theme", description: "A sleek dark theme with violet accents.", type: "Theme", price: 200, rarity: "Rare", icon: "🎨" },
+    { name: "Crimson Abyss Theme", description: "A blazing dark theme with molten ruby accents.", type: "Theme", price: 250, rarity: "Rare", icon: "🔥" },
+    { name: "Emerald Grove Theme", description: "A mystical dark theme with jade emerald aura.", type: "Theme", price: 250, rarity: "Rare", icon: "🌿" },
+    { name: "Cyberpunk Neon Theme", description: "A high-octane synthwave theme with cyan & pink neon.", type: "Theme", price: 300, rarity: "Epic", icon: "⚡" },
     { name: "Golden Border Frame", description: "Wrap your avatar in a shimmering gold frame.", type: "Frame", price: 350, rarity: "Epic", icon: "🖼️" },
     { name: "Dragon Avatar", description: "A fierce dragon avatar for true adventurers.", type: "Avatar", price: 500, rarity: "Epic", icon: "🐉" },
     { name: "Knight Avatar", description: "A noble knight avatar.", type: "Avatar", price: 150, rarity: "Common", icon: "🛡️" },
