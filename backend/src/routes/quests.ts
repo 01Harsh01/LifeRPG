@@ -155,13 +155,50 @@ router.post("/:id/complete", asyncHandler(async (req: AuthedRequest, res) => {
     });
 
     if (xpResult.leveledUp) {
+      await tx.user.update({
+        where: { id: userId },
+        data: { skillPoints: { increment: xpResult.levelsGained } },
+      });
       await tx.activityLog.create({
         data: {
           userId,
           action: "level_up",
-          message: `Reached level ${xpResult.afterLevel}`,
+          message: `Reached level ${xpResult.afterLevel}! (+${xpResult.levelsGained} Skill Point)`,
         },
       });
+    }
+
+    // Quest XP also strikes the active World Boss
+    const activeBoss = await tx.userBoss.findFirst({
+      where: { userId, defeated: false },
+      orderBy: { createdAt: "desc" },
+    });
+    if (activeBoss) {
+      const newHp = Math.max(0, activeBoss.currentHp - quest.xpReward);
+      const defeated = newHp <= 0;
+      await tx.userBoss.update({
+        where: { id: activeBoss.id },
+        data: { currentHp: newHp, defeated },
+      });
+      if (defeated) {
+        await tx.user.update({
+          where: { id: userId },
+          data: {
+            gold: { increment: activeBoss.goldReward },
+            xp: { increment: activeBoss.xpReward },
+            skillPoints: { increment: 1 },
+          },
+        });
+        await tx.activityLog.create({
+          data: {
+            userId,
+            action: "boss_defeated",
+            message: `🏆 Slew World Boss "${activeBoss.name}" in quest combat!`,
+            xpGained: activeBoss.xpReward,
+            goldGained: activeBoss.goldReward,
+          },
+        });
+      }
     }
 
     return updatedUser;
@@ -181,12 +218,53 @@ router.post("/:id/complete", asyncHandler(async (req: AuthedRequest, res) => {
     beforeLevel: xpResult.beforeLevel,
     afterLevel: xpResult.afterLevel,
     user: {
-      id: finalUser.id, level: finalUser.level, xp: finalUser.xp,
-      gold: finalUser.gold, currentStreak: finalUser.currentStreak, longestStreak: finalUser.longestStreak,
-      xpIntoLevel: levelInfo.xpIntoLevel, xpForNextLevel: levelInfo.xpForNextLevel,
+      id: finalUser.id,
+      level: finalUser.level,
+      xp: finalUser.xp,
+      gold: finalUser.gold,
+      skillPoints: finalUser.skillPoints,
+      currentStreak: finalUser.currentStreak,
+      longestStreak: finalUser.longestStreak,
+      xpIntoLevel: levelInfo.xpIntoLevel,
+      xpForNextLevel: levelInfo.xpForNextLevel,
     },
     newAchievements,
   });
+}));
+
+// POST /api/quests/generate-daily - AI/Automatic Daily Missions Generator
+router.post("/generate-daily", asyncHandler(async (req: AuthedRequest, res) => {
+  const userId = req.userId!;
+  const templates = [
+    { title: "Defeat 3 Algorithmic Challenges", description: "Solve data structures or logic coding challenges.", category: "Coding" as Category, difficulty: "Medium" as Difficulty },
+    { title: "Physical Conditioning & Calisthenics", description: "Complete a workout session, jog, or core training.", category: "Fitness" as Category, difficulty: "Medium" as Difficulty },
+    { title: "Tome of Wisdom Reading", description: "Read 25 pages of non-fiction, research, or technical docs.", category: "Reading" as Category, difficulty: "Easy" as Difficulty },
+    { title: "Mindful Deep Work Session", description: "90 minutes of zero-distraction focus on primary project.", category: "Work" as Category, difficulty: "Hard" as Difficulty },
+    { title: "Health & Vitality Regeneration", description: "Drink 2L water, stretch, and get quality sleep.", category: "Health" as Category, difficulty: "Easy" as Difficulty },
+  ];
+
+  // Pick 3 unique random missions
+  const shuffled = templates.sort(() => 0.5 - Math.random()).slice(0, 3);
+  const created = [];
+
+  for (const t of shuffled) {
+    const rewards = getRewardsForDifficulty(t.difficulty);
+    const q = await prisma.quest.create({
+      data: {
+        userId,
+        title: t.title,
+        description: t.description,
+        category: t.category,
+        difficulty: t.difficulty,
+        xpReward: rewards.xp,
+        goldReward: rewards.gold,
+        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
+    created.push(q);
+  }
+
+  res.status(201).json({ quests: created });
 }));
 
 function totalXpFromUser(user: { xp: number }) {

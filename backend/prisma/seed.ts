@@ -9,6 +9,7 @@ async function main() {
     { name: "Emerald Grove Theme", description: "A mystical dark theme with jade emerald aura.", type: "Theme", price: 250, rarity: "Rare", icon: "🌿" },
     { name: "Cyberpunk Neon Theme", description: "A high-octane synthwave theme with cyan & pink neon.", type: "Theme", price: 300, rarity: "Epic", icon: "⚡" },
     { name: "Golden Border Frame", description: "Wrap your avatar in a shimmering gold frame.", type: "Frame", price: 350, rarity: "Epic", icon: "🖼️" },
+    { name: "Phoenix Frame", description: "An animated phoenix-themed frame.", type: "Frame", price: 750, rarity: "Legendary", icon: "🦅" },
     { name: "Dragon Avatar", description: "A fierce dragon avatar for true adventurers.", type: "Avatar", price: 500, rarity: "Epic", icon: "🐉" },
     { name: "Knight Avatar", description: "A noble knight avatar.", type: "Avatar", price: 150, rarity: "Common", icon: "🛡️" },
     { name: "Wizard Avatar", description: "A wise wizard avatar.", type: "Avatar", price: 150, rarity: "Common", icon: "🧙" },
@@ -16,7 +17,11 @@ async function main() {
     { name: "\"Legendary Hero\" Title", description: "A title reserved for the most accomplished.", type: "Title", price: 1000, rarity: "Legendary", icon: "👑" },
     { name: "Fire Streak Badge", description: "A badge that glows when your streak is hot.", type: "Badge", price: 120, rarity: "Common", icon: "🔥" },
     { name: "Starlight Cosmetic", description: "A subtle starlight particle effect around your card.", type: "Cosmetic", price: 400, rarity: "Epic", icon: "✨" },
-    { name: "Phoenix Frame", description: "An animated phoenix-themed frame.", type: "Frame", price: 750, rarity: "Legendary", icon: "🦅" },
+    { name: "Streak Freeze Charm", description: "Consumable charm that protects your streak from resetting on a missed day.", type: "Cosmetic", price: 100, rarity: "Common", icon: "🧊" },
+    { name: "Rune Blade of Focus", description: "A mystical blade forged from deep concentration.", type: "Weapon", price: 350, rarity: "Epic", icon: "🗡️" },
+    { name: "Excalibur of Discipline", description: "The legendary sword that cuts through procrastination.", type: "Weapon", price: 800, rarity: "Legendary", icon: "⚔️" },
+    { name: "Aegis Plate of Habits", description: "Sturdy armor forged to weather any challenge.", type: "Armor", price: 400, rarity: "Epic", icon: "🛡️" },
+    { name: "Cloak of the Night Scholar", description: "Silken midnight cloak woven with arcane runes.", type: "Armor", price: 250, rarity: "Rare", icon: "🧥" },
   ];
 
   for (const item of shopItems) {

@@ -5,9 +5,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        void: "#0b0b14",
-        surface: "#12121e",
-        surface2: "#191927",
+        void: "var(--bg-primary, #0b0b14)",
+        surface: "var(--bg-surface, #12121e)",
+        surface2: "var(--bg-surface2, #191927)",
         gold: "#e8b64f",
         arcane: "rgb(var(--color-arcane, 139 92 246) / <alpha-value>)",
         arcane2: "rgb(var(--color-arcane2, 99 102 241) / <alpha-value>)",
@@ -17,7 +17,7 @@ export default {
         body: ["'Inter'", "sans-serif"],
       },
       boxShadow: {
-        glow: "0 0 20px var(--glow-color, rgba(139, 92, 246, 0.35))",
+        glow: "0 0 22px var(--glow-color, rgba(139, 92, 246, 0.35))",
         goldGlow: "0 0 20px rgba(232, 182, 79, 0.35)",
       },
       keyframes: {

@@ -10,8 +10,11 @@ export interface User {
   level: number;
   xp: number;
   gold: number;
+  skillPoints?: number;
   currentStreak?: number;
   longestStreak?: number;
+  streakFreezeActive?: boolean;
+  adventureWorld?: number;
 }
 
 export interface Quest {
@@ -45,8 +48,13 @@ export interface Character {
   xpIntoLevel: number;
   xpForNextLevel: number;
   gold: number;
+  skillPoints: number;
   currentStreak: number;
   longestStreak: number;
+  streakFreezeActive: boolean;
+  adventureWorld: number;
+  rankTitle: string;
+  rankTier: string;
   attributes: Attributes;
   equippedItems: ShopItem[];
 }
@@ -55,7 +63,7 @@ export interface ShopItem {
   id: string;
   name: string;
   description: string;
-  type: string;
+  type: string; // Theme | Avatar | Frame | Badge | Title | Cosmetic | Weapon | Armor
   price: number;
   rarity: "Common" | "Rare" | "Epic" | "Legendary";
   icon: string;
@@ -82,6 +90,33 @@ export interface Achievement {
   unlockedAt: string | null;
 }
 
+export interface Boss {
+  id: string;
+  bossId: string;
+  name: string;
+  title: string;
+  icon: string;
+  maxHp: number;
+  currentHp: number;
+  goldReward: number;
+  xpReward: number;
+  defeated: boolean;
+  tier: number;
+}
+
+export interface SkillNode {
+  key: string;
+  name: string;
+  branch: string;
+  description: string;
+  icon: string;
+  cost: number;
+  tier: number;
+  requires?: string;
+  unlocked: boolean;
+  canUnlock: boolean;
+}
+
 export interface ActivityLogEntry {
   id: string;
   action: string;
@@ -100,6 +135,6 @@ export interface CompleteQuestResult {
   levelsGained: number;
   beforeLevel: number;
   afterLevel: number;
-  user: User & { xpIntoLevel: number; xpForNextLevel: number };
+  user: User & { xpIntoLevel: number; xpForNextLevel: number; skillPoints: number };
   newAchievements: Achievement[];
 }

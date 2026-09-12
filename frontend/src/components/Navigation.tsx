@@ -14,24 +14,36 @@ import {
   VolumeX,
   Menu,
   X,
+  Sun,
+  Moon,
+  Compass,
+  Zap,
+  Flame,
+  ShieldAlert,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { useToast } from "./Toast";
 import { isSoundEnabled, setSoundEnabled, playClickSound } from "../utils/sound";
 
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/quests", label: "Quests", icon: Swords },
+  { to: "/quests", label: "Quest Log", icon: Swords },
+  { to: "/boss", label: "Boss Battles", icon: ShieldAlert, badge: "Raid" },
+  { to: "/focus", label: "Focus Chamber", icon: Flame },
+  { to: "/adventure", label: "Adventure Map", icon: Compass },
+  { to: "/skills", label: "Skill Tree", icon: Zap },
   { to: "/character", label: "Character", icon: UserIcon },
-  { to: "/shop", label: "Shop", icon: Store },
+  { to: "/shop", label: "Shop Bazaar", icon: Store },
   { to: "/inventory", label: "Inventory", icon: Backpack },
   { to: "/achievements", label: "Achievements", icon: Trophy },
-  { to: "/history", label: "History", icon: History },
+  { to: "/history", label: "Chronicles", icon: History },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function Sidebar() {
   const { logout } = useAuth();
+  const { colorMode, toggleColorMode } = useTheme();
   const navigate = useNavigate();
   const toast = useToast();
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
@@ -44,54 +56,85 @@ export function Sidebar() {
     toast.push(next ? "Sound effects enabled 🔊" : "Sound effects muted 🔇", "info");
   }
 
+  function handleToggleMode() {
+    playClickSound();
+    toggleColorMode();
+    toast.push(colorMode === "dark" ? "Switched to Bright / Light Mode ☀️" : "Switched to Fantasy Dark Mode 🌙", "info");
+  }
+
   return (
-    <aside className="hidden md:flex flex-col w-64 shrink-0 border-r border-white/5 bg-surface/70 backdrop-blur-md h-screen sticky top-0 p-4">
-      <div className="flex items-center justify-between px-2 py-3 mb-4 border-b border-white/5 pb-4">
-        <div className="flex items-center gap-2.5">
+    <aside className="hidden md:flex flex-col w-64 shrink-0 border-r border-white/5 bg-surface/80 backdrop-blur-md h-screen sticky top-0 p-4">
+      {/* Brand & Theme/Sound Controls */}
+      <div className="flex items-center justify-between px-2 py-2 mb-3 border-b border-white/5 pb-3">
+        <div className="flex items-center gap-2">
           <span className="text-2xl drop-shadow-[0_0_8px_rgba(232,182,79,0.5)]">⚔️</span>
           <div>
             <span className="font-display font-bold tracking-wider text-base text-white">LIFE RPG</span>
-            <p className="text-[10px] text-arcane tracking-wider uppercase font-semibold">Hero's Journey</p>
+            <p className="text-[10px] text-arcane tracking-wider uppercase font-semibold">Hero's Realm</p>
           </div>
         </div>
-        <button
-          onClick={toggleSound}
-          title={soundOn ? "Mute sounds" : "Enable sounds"}
-          aria-label={soundOn ? "Mute sounds" : "Enable sounds"}
-          className="p-1.5 rounded-lg text-slate-400 hover:text-gold hover:bg-white/5 transition"
-        >
-          {soundOn ? <Volume2 size={18} /> : <VolumeX size={18} />}
-        </button>
+
+        <div className="flex items-center gap-1">
+          {/* Light / Dark Mode Toggle */}
+          <button
+            onClick={handleToggleMode}
+            title={colorMode === "dark" ? "Switch to Bright/Light mode" : "Switch to Dark mode"}
+            aria-label={colorMode === "dark" ? "Switch to Bright/Light mode" : "Switch to Dark mode"}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-gold hover:bg-white/5 transition"
+          >
+            {colorMode === "dark" ? <Sun size={17} className="text-amber-400" /> : <Moon size={17} className="text-indigo-600" />}
+          </button>
+
+          {/* Sound Toggle */}
+          <button
+            onClick={toggleSound}
+            title={soundOn ? "Mute sounds" : "Enable sounds"}
+            aria-label={soundOn ? "Mute sounds" : "Enable sounds"}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-gold hover:bg-white/5 transition"
+          >
+            {soundOn ? <Volume2 size={17} /> : <VolumeX size={17} />}
+          </button>
+        </div>
       </div>
 
-      <nav className="flex-1 flex flex-col gap-1 overflow-y-auto pr-1" aria-label="Main navigation">
-        {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+      {/* Navigation Links */}
+      <nav className="flex-1 flex flex-col gap-0.5 overflow-y-auto pr-1" aria-label="Main navigation">
+        {NAV_ITEMS.map(({ to, label, icon: Icon, badge }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition ${
+              `flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition ${
                 isActive
-                  ? "bg-gradient-to-r from-arcane/25 to-arcane2/15 text-white border border-arcane/40 shadow-glow"
+                  ? "bg-gradient-to-r from-arcane/25 to-arcane2/15 text-white border border-arcane/40 shadow-glow font-bold"
                   : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
               }`
             }
           >
-            <Icon size={18} /> {label}
+            <div className="flex items-center gap-2.5">
+              <Icon size={17} />
+              <span>{label}</span>
+            </div>
+            {badge && (
+              <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30">
+                {badge}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>
 
-      <div className="pt-3 border-t border-white/5 space-y-1">
+      {/* Footer */}
+      <div className="pt-2 border-t border-white/5 space-y-1">
         <button
           onClick={async () => {
             await logout();
-            toast.push("Logged out. See you soon, adventurer!", "info");
+            toast.push("Logged out. Safe travels, adventurer!", "info");
             navigate("/login");
           }}
-          className="flex items-center gap-3 px-3.5 py-2.5 w-full rounded-xl text-sm font-medium text-slate-400 hover:bg-red-500/10 hover:text-red-300 transition"
+          className="flex items-center gap-2.5 px-3 py-2 w-full rounded-xl text-xs font-medium text-slate-400 hover:bg-red-500/10 hover:text-red-300 transition"
         >
-          <LogOut size={18} /> Logout
+          <LogOut size={16} /> Logout
         </button>
       </div>
     </aside>
@@ -101,6 +144,7 @@ export function Sidebar() {
 export function MobileNav() {
   const [moreOpen, setMoreOpen] = useState(false);
   const { logout } = useAuth();
+  const { colorMode, toggleColorMode } = useTheme();
   const navigate = useNavigate();
   const toast = useToast();
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
@@ -113,12 +157,18 @@ export function MobileNav() {
     toast.push(next ? "Sound effects enabled 🔊" : "Sound effects muted 🔇", "info");
   }
 
+  function handleToggleMode() {
+    playClickSound();
+    toggleColorMode();
+    toast.push(colorMode === "dark" ? "Switched to Light Mode ☀️" : "Switched to Dark Mode 🌙", "info");
+  }
+
   const primaryMobileItems = [
     { to: "/dashboard", label: "Home", icon: LayoutDashboard },
     { to: "/quests", label: "Quests", icon: Swords },
+    { to: "/boss", label: "Boss", icon: ShieldAlert },
+    { to: "/focus", label: "Focus", icon: Flame },
     { to: "/character", label: "Hero", icon: UserIcon },
-    { to: "/shop", label: "Shop", icon: Store },
-    { to: "/inventory", label: "Bag", icon: Backpack },
   ];
 
   return (
@@ -132,34 +182,34 @@ export function MobileNav() {
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[11px] font-medium transition ${
+              `flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] font-medium transition ${
                 isActive ? "text-arcane font-bold" : "text-slate-400 hover:text-slate-200"
               }`
             }
           >
-            <Icon size={19} /> {label}
+            <Icon size={18} /> {label}
           </NavLink>
         ))}
         <button
           onClick={() => setMoreOpen(true)}
-          className="flex flex-col items-center gap-0.5 px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-200"
+          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-200"
         >
-          <Menu size={19} /> More
+          <Menu size={18} /> More
         </button>
       </nav>
 
       {/* Mobile "More" Drawer */}
       {moreOpen && (
         <div
-          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex flex-col justify-end md:hidden"
+          className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex flex-col justify-end md:hidden"
           onClick={() => setMoreOpen(false)}
         >
           <div
-            className="bg-surface border-t border-white/10 rounded-t-3xl p-6 space-y-4 max-h-[80vh] overflow-y-auto"
+            className="bg-surface border-t border-white/10 rounded-t-3xl p-6 space-y-4 max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between pb-3 border-b border-white/5">
-              <h3 className="font-display text-base font-bold text-white">Menu & Tools</h3>
+              <h3 className="font-display text-base font-bold text-white">Full Realm Menu</h3>
               <button
                 onClick={() => setMoreOpen(false)}
                 className="p-1 text-slate-400 hover:text-white rounded-lg"
@@ -170,32 +220,71 @@ export function MobileNav() {
 
             <div className="grid grid-cols-2 gap-2">
               <NavLink
+                to="/adventure"
+                onClick={() => setMoreOpen(false)}
+                className="card p-3 flex items-center gap-2.5 text-xs font-medium hover:border-arcane/40"
+              >
+                <Compass size={17} className="text-arcane" /> Adventure Map
+              </NavLink>
+              <NavLink
+                to="/skills"
+                onClick={() => setMoreOpen(false)}
+                className="card p-3 flex items-center gap-2.5 text-xs font-medium hover:border-gold/40"
+              >
+                <Zap size={17} className="text-gold" /> Skill Tree
+              </NavLink>
+              <NavLink
+                to="/shop"
+                onClick={() => setMoreOpen(false)}
+                className="card p-3 flex items-center gap-2.5 text-xs font-medium hover:border-gold/40"
+              >
+                <Store size={17} className="text-gold" /> Shop Bazaar
+              </NavLink>
+              <NavLink
+                to="/inventory"
+                onClick={() => setMoreOpen(false)}
+                className="card p-3 flex items-center gap-2.5 text-xs font-medium hover:border-arcane/40"
+              >
+                <Backpack size={17} className="text-arcane" /> Inventory
+              </NavLink>
+              <NavLink
                 to="/achievements"
                 onClick={() => setMoreOpen(false)}
-                className="card p-3 flex items-center gap-2.5 text-sm font-medium hover:border-arcane/40"
+                className="card p-3 flex items-center gap-2.5 text-xs font-medium hover:border-gold/40"
               >
-                <Trophy size={18} className="text-gold" /> Achievements
+                <Trophy size={17} className="text-gold" /> Achievements
               </NavLink>
               <NavLink
                 to="/history"
                 onClick={() => setMoreOpen(false)}
-                className="card p-3 flex items-center gap-2.5 text-sm font-medium hover:border-arcane/40"
+                className="card p-3 flex items-center gap-2.5 text-xs font-medium hover:border-arcane/40"
               >
-                <History size={18} className="text-arcane" /> Chronicles
+                <History size={17} className="text-arcane" /> Chronicles
               </NavLink>
               <NavLink
                 to="/settings"
                 onClick={() => setMoreOpen(false)}
-                className="card p-3 flex items-center gap-2.5 text-sm font-medium hover:border-arcane/40"
+                className="card p-3 flex items-center gap-2.5 text-xs font-medium hover:border-arcane/40"
               >
-                <Settings size={18} className="text-slate-300" /> Settings
+                <Settings size={17} className="text-slate-300" /> Settings
               </NavLink>
+
+              {/* Theme Toggle Button */}
+              <button
+                onClick={handleToggleMode}
+                className="card p-3 flex items-center gap-2.5 text-xs font-medium text-left hover:border-amber-400/40"
+              >
+                {colorMode === "dark" ? <Sun size={17} className="text-amber-400" /> : <Moon size={17} className="text-indigo-600" />}
+                <span>{colorMode === "dark" ? "Light Mode" : "Dark Mode"}</span>
+              </button>
+
+              {/* Sound Toggle Button */}
               <button
                 onClick={toggleSound}
-                className="card p-3 flex items-center gap-2.5 text-sm font-medium text-left hover:border-gold/40"
+                className="card p-3 flex items-center gap-2.5 text-xs font-medium text-left hover:border-gold/40"
               >
-                {soundOn ? <Volume2 size={18} className="text-gold" /> : <VolumeX size={18} className="text-slate-500" />}
-                {soundOn ? "Sound: On" : "Sound: Off"}
+                {soundOn ? <Volume2 size={17} className="text-gold" /> : <VolumeX size={17} className="text-slate-500" />}
+                <span>{soundOn ? "Sound: On" : "Sound: Off"}</span>
               </button>
             </div>
 
@@ -206,7 +295,7 @@ export function MobileNav() {
                 toast.push("Logged out.", "info");
                 navigate("/login");
               }}
-              className="btn-secondary w-full text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300"
+              className="btn-secondary w-full text-xs text-red-400 hover:bg-red-500/10 hover:text-red-300 py-2.5"
             >
               <LogOut size={16} /> Logout
             </button>

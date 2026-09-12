@@ -11,6 +11,8 @@ import shopRoutes from "./routes/shop";
 import inventoryRoutes from "./routes/inventory";
 import achievementRoutes from "./routes/achievements";
 import activityRoutes from "./routes/activity";
+import bossRoutes from "./routes/boss";
+import skillRoutes from "./routes/skills";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -39,6 +41,8 @@ app.use("/api/shop", shopRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/achievements", achievementRoutes);
 app.use("/api/activity", activityRoutes);
+app.use("/api/boss", bossRoutes);
+app.use("/api/skills", skillRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

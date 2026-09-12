@@ -4,42 +4,78 @@
 
 @layer base {
   :root {
+    --bg-primary: #0b0b14;
+    --bg-gradient: radial-gradient(ellipse at top, #16162a 0%, #0b0b14 60%);
+    --bg-surface: #12121e;
+    --bg-surface2: #191927;
+    --border-color: rgba(255, 255, 255, 0.08);
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --input-bg: rgba(255, 255, 255, 0.05);
+    --input-border: rgba(255, 255, 255, 0.12);
+    --card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
     --color-arcane: 139 92 246; /* #8b5cf6 */
     --color-arcane2: 99 102 241; /* #6366f1 */
     --glow-color: rgba(139, 92, 246, 0.35);
   }
 
+  html.light {
+    --bg-primary: #f8fafc;
+    --bg-gradient: radial-gradient(ellipse at top, #ffffff 0%, #f1f5f9 100%);
+    --bg-surface: #ffffff;
+    --bg-surface2: #f8fafc;
+    --border-color: rgba(15, 23, 42, 0.1);
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #64748b;
+    --input-bg: #ffffff;
+    --input-border: #cbd5e1;
+    --card-shadow: 0 4px 18px -2px rgba(15, 23, 42, 0.07);
+    --color-arcane: 124 58 237; /* deep rich violet */
+    --color-arcane2: 79 70 229;
+    --glow-color: rgba(124, 58, 237, 0.22);
+  }
+
+  /* Accent theme variants */
   [data-theme="crimson"] {
-    --color-arcane: 239 68 68; /* red-500 */
-    --color-arcane2: 220 38 38; /* red-600 */
+    --color-arcane: 239 68 68;
+    --color-arcane2: 220 38 38;
     --glow-color: rgba(239, 68, 68, 0.45);
   }
 
   [data-theme="emerald"] {
-    --color-arcane: 16 185 129; /* emerald-500 */
-    --color-arcane2: 5 150 105; /* emerald-600 */
+    --color-arcane: 16 185 129;
+    --color-arcane2: 5 150 105;
     --glow-color: rgba(16, 185, 129, 0.45);
   }
 
   [data-theme="cyberpunk"] {
-    --color-arcane: 6 182 212; /* cyan-500 */
-    --color-arcane2: 236 72 153; /* pink-500 */
+    --color-arcane: 6 182 212;
+    --color-arcane2: 236 72 153;
     --glow-color: rgba(6, 182, 212, 0.45);
   }
 
   [data-theme="gold"] {
-    --color-arcane: 232 182 79; /* gold */
-    --color-arcane2: 217 119 6; /* amber-600 */
+    --color-arcane: 232 182 79;
+    --color-arcane2: 217 119 6;
     --glow-color: rgba(232, 182, 79, 0.45);
   }
 
   * {
     scrollbar-color: #6366f1 #12121e;
   }
-  body {
-    background: radial-gradient(ellipse at top, #16162a 0%, #0b0b14 60%);
-    min-height: 100vh;
+  html.light * {
+    scrollbar-color: #94a3b8 #f1f5f9;
   }
+
+  body {
+    background: var(--bg-gradient);
+    color: var(--text-primary);
+    min-height: 100vh;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
   :focus-visible {
     outline: 2px solid #e8b64f;
     outline-offset: 2px;
@@ -48,26 +84,102 @@
 
 @layer components {
   .card {
-    @apply bg-surface/80 border border-white/5 rounded-2xl backdrop-blur-sm;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--card-shadow);
+    border-radius: 1rem;
+    backdrop-filter: blur(8px);
+    transition: background-color 0.25s ease, border-color 0.25s ease;
   }
   .card-glow {
-    @apply card shadow-glow border-arcane/30;
+    @apply card;
+    box-shadow: 0 0 24px var(--glow-color);
+    border-color: rgb(var(--color-arcane) / 0.35);
   }
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-arcane to-arcane2 px-5 py-2.5 font-semibold text-white shadow-glow transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-2.5 font-semibold text-slate-100 transition hover:bg-white/10;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border px-5 py-2.5 font-semibold transition;
+    background-color: var(--input-bg);
+    border-color: var(--input-border);
+    color: var(--text-primary);
+  }
+  .btn-secondary:hover {
+    filter: brightness(1.15);
   }
   .btn-gold {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-yellow-500 px-5 py-2.5 font-semibold text-void shadow-goldGlow transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-yellow-500 px-5 py-2.5 font-semibold text-slate-900 shadow-goldGlow transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
   }
   .input {
-    @apply w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-slate-100 placeholder:text-slate-500 focus:border-arcane focus:ring-1 focus:ring-arcane outline-none transition;
+    width: 100%;
+    border-radius: 0.75rem;
+    border: 1px solid var(--input-border);
+    background-color: var(--input-bg);
+    padding: 0.625rem 1rem;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input:focus {
+    border-color: rgb(var(--color-arcane));
+    box-shadow: 0 0 0 2px rgb(var(--color-arcane) / 0.2);
   }
   .label {
-    @apply block text-sm font-medium text-slate-300 mb-1.5;
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.375rem;
   }
+}
+
+/* Light mode high-contrast text and element overrides */
+html.light [class*="text-white"] {
+  color: #0f172a !important;
+}
+html.light .btn-primary,
+html.light .btn-primary * {
+  color: #ffffff !important;
+}
+html.light .btn-gold,
+html.light .btn-gold * {
+  color: #0f172a !important;
+}
+html.light .text-slate-100 {
+  color: #0f172a;
+}
+html.light .text-slate-200 {
+  color: #1e293b;
+}
+html.light .text-slate-300 {
+  color: #334155;
+}
+html.light .text-slate-400 {
+  color: #475569;
+}
+html.light .text-slate-500 {
+  color: #64748b;
+}
+html.light aside,
+html.light nav {
+  background-color: rgba(255, 255, 255, 0.92);
+  border-color: rgba(15, 23, 42, 0.08);
+}
+html.light .divide-white\/5 > * {
+  border-color: rgba(15, 23, 42, 0.06);
+}
+html.light .border-white\/10 {
+  border-color: rgba(15, 23, 42, 0.1);
+}
+html.light .border-white\/5 {
+  border-color: rgba(15, 23, 42, 0.06);
+}
+html.light .bg-white\/5 {
+  background-color: rgba(15, 23, 42, 0.04);
+}
+html.light .bg-white\/10 {
+  background-color: rgba(15, 23, 42, 0.07);
 }
 
 @media (prefers-reduced-motion: reduce) {

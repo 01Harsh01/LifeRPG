@@ -16,6 +16,10 @@ import Inventory from "./pages/Inventory";
 import Achievements from "./pages/Achievements";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
+import BossBattle from "./pages/BossBattle";
+import AdventureMap from "./pages/AdventureMap";
+import SkillTree from "./pages/SkillTree";
+import FocusMode from "./pages/FocusMode";
 
 export default function App() {
   return (
@@ -32,6 +36,10 @@ export default function App() {
                 <Route element={<ProtectedRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/quests" element={<Quests />} />
+                  <Route path="/boss" element={<BossBattle />} />
+                  <Route path="/adventure" element={<AdventureMap />} />
+                  <Route path="/skills" element={<SkillTree />} />
+                  <Route path="/focus" element={<FocusMode />} />
                   <Route path="/character" element={<Character />} />
                   <Route path="/shop" element={<Shop />} />
                   <Route path="/inventory" element={<Inventory />} />

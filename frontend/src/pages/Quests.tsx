@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X, Plus, Search, Filter } from "lucide-react";
+import { X, Plus, Search, Filter, Sparkles } from "lucide-react";
 import { api, ApiError } from "../services/api";
 import { QuestCard } from "../components/QuestCard";
 import { ConfirmationModal } from "../components/ConfirmationModal";
@@ -288,6 +288,23 @@ export default function Quests() {
     }
   }
 
+  const [generatingDaily, setGeneratingDaily] = useState(false);
+
+  async function handleGenerateDaily() {
+    if (generatingDaily) return;
+    setGeneratingDaily(true);
+    try {
+      const res = await api.post<{ quests: Quest[] }>("/quests/generate-daily");
+      fireConfetti(50);
+      toast.push(`Generated ${res.quests.length} Daily RPG Quests!`, "success");
+      await load();
+    } catch (e) {
+      toast.push(e instanceof ApiError ? e.message : "Could not generate quests.", "error");
+    } finally {
+      setGeneratingDaily(false);
+    }
+  }
+
   const categories = useMemo(() => CATEGORIES, []);
 
   return (
@@ -297,15 +314,25 @@ export default function Quests() {
           <h1 className="font-display text-2xl font-bold text-white">Quest Log</h1>
           <p className="text-xs text-slate-400 mt-0.5">Track and conquer your daily challenges</p>
         </div>
-        <button
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-          className="btn-primary text-sm shadow-glow"
-        >
-          <Plus size={16} /> New Quest
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleGenerateDaily}
+            disabled={generatingDaily}
+            className="btn-secondary text-xs sm:text-sm py-2 px-3 flex items-center gap-1.5 border-gold/30 hover:border-gold/60"
+          >
+            <Sparkles size={16} className="text-gold" />
+            {generatingDaily ? "Conjuring..." : "Daily Missions"}
+          </button>
+          <button
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+            className="btn-primary text-xs sm:text-sm py-2 px-4 shadow-glow"
+          >
+            <Plus size={16} /> New Quest
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-3 mb-6">
