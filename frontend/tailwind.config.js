@@ -6,12 +6,16 @@ export default {
     extend: {
       colors: {
         void: "var(--bg-primary, #0a210f)",
-        surface: "var(--bg-surface, #0f2b16)",
-        surface2: "var(--bg-surface2, #14381e)",
+        surface: "var(--bg-surface, #0e2614)",
+        surface2: "var(--bg-surface2, #13331b)",
         evergreen: "#0a210f",
+        "dark-spruce": "#14591d",
         darkSpruce: "#14591d",
+        "lime-moss": "#99aa38",
         limeMoss: "#99aa38",
+        "pale-amber": "#e1e289",
         paleAmber: "#e1e289",
+        "icy-blue": "#acd2ed",
         icyBlue: "#acd2ed",
         gold: "var(--gold-color, #e1e289)",
         arcane: "rgb(var(--color-arcane, 153 170 56) / <alpha-value>)",

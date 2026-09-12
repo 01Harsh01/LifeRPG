@@ -86,7 +86,9 @@
     border-color: rgb(var(--color-arcane) / 0.4);
   }
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-darkSpruce to-limeMoss px-5 py-2.5 font-bold text-white shadow-glow transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 font-bold shadow-glow transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+    color: #ffffff;
+    background: linear-gradient(135deg, var(--dark-spruce) 0%, var(--lime-moss) 100%);
   }
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 rounded-xl border px-5 py-2.5 font-semibold transition;
@@ -98,7 +100,9 @@
     filter: brightness(1.12);
   }
   .btn-gold {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-paleAmber to-limeMoss px-5 py-2.5 font-bold text-evergreen shadow-goldGlow transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 font-bold shadow-goldGlow transition-transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none;
+    color: var(--evergreen);
+    background: linear-gradient(135deg, var(--pale-amber) 0%, var(--lime-moss) 100%);
   }
   .input {
     width: 100%;
