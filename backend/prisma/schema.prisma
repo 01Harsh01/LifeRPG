@@ -1,0 +1,140 @@
+// Prisma schema for Life RPG
+//
+// Local/dev uses SQLite for a zero-setup experience. For production, switch
+// the datasource below to postgresql and point DATABASE_URL at your
+// Neon/Supabase/Render Postgres instance - no other code changes needed.
+//
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  passwordHash  String
+  level         Int      @default(1)
+  xp            Int      @default(0)
+  gold          Int      @default(0)
+  currentStreak Int      @default(0)
+  longestStreak Int      @default(0)
+  lastQuestDate DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  attributes    CharacterAttribute?
+  quests        Quest[]
+  inventory     InventoryItem[]
+  achievements  UserAchievement[]
+  activity      ActivityLog[]
+
+  @@index([email])
+}
+
+model CharacterAttribute {
+  id         String @id @default(uuid())
+  userId     String @unique
+  user       User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  strength   Int    @default(0)
+  intellect  Int    @default(0)
+  discipline Int    @default(0)
+  vitality   Int    @default(0)
+  creativity Int    @default(0)
+  social     Int    @default(0)
+}
+
+model Quest {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  category    String // Coding | Study | Fitness | Health | Work | Personal | Reading | Creativity | Social | Custom
+  difficulty  String // Easy | Medium | Hard | Epic
+  xpReward    Int
+  goldReward  Int
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([userId, completed])
+}
+
+model ShopItem {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  type        String // Theme | Avatar | Frame | Badge | Title | Cosmetic
+  price       Int
+  rarity      String // Common | Rare | Epic | Legendary
+  icon        String
+  createdAt   DateTime @default(now())
+
+  purchases InventoryItem[]
+}
+
+model InventoryItem {
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId       String
+  item         ShopItem  @relation(fields: [itemId], references: [id])
+  quantity     Int       @default(1)
+  equipped     Boolean   @default(false)
+  purchasedAt  DateTime  @default(now())
+
+  @@unique([userId, itemId])
+  @@index([userId])
+}
+
+model Achievement {
+  id          String  @id @default(uuid())
+  name        String
+  description String
+  requirement String // machine key, e.g. "first_quest", "streak_7", "quests_50"
+  icon        String
+  xpReward    Int     @default(0)
+  goldReward  Int     @default(0)
+
+  unlocks UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  unlockedAt    DateTime    @default(now())
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId    String?
+  action    String // quest_completed | level_up | achievement_unlocked | purchase | attribute_gain
+  message   String
+  xpGained  Int      @default(0)
+  goldGained Int     @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([userId, createdAt])
+}
