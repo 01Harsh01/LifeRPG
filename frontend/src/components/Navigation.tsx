@@ -21,6 +21,7 @@ import {
   Flame,
   ShieldAlert,
   Bell,
+  Brain,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -32,6 +33,7 @@ import { computeLevelFromXp } from "../utils/xp";
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/quests", label: "Quest Log", icon: Swords },
+  { to: "/brain-games", label: "Mind Sanctum", icon: Brain, badge: "50 IQ" },
   { to: "/boss", label: "Boss Battles", icon: ShieldAlert, badge: "Raid" },
   { to: "/focus", label: "Focus Chamber", icon: Flame },
   { to: "/adventure", label: "Adventure Map", icon: Compass },
@@ -269,6 +271,13 @@ export function MobileNav() {
             )}
 
             <div className="grid grid-cols-2 gap-2">
+              <NavLink
+                to="/brain-games"
+                onClick={() => setMoreOpen(false)}
+                className="card p-3 flex items-center gap-2.5 text-xs font-medium hover:border-gold/40"
+              >
+                <Brain size={17} className="text-gold" /> Mind Sanctum (50 IQ)
+              </NavLink>
               <NavLink
                 to="/settings?tab=notifications"
                 onClick={() => setMoreOpen(false)}

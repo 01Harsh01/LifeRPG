@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "../prisma";
 import { requireAuth, AuthedRequest } from "../middleware/auth";
 import { asyncHandler, AppError } from "../middleware/errorHandler";
-import { computeLevelFromXp } from "../services/xp";
+import { computeLevelFromXp, applyXpGain } from "../services/xp";
 
 const router = Router();
 router.use(requireAuth);
@@ -411,6 +411,63 @@ router.put("/avatar", asyncHandler(async (req: AuthedRequest, res) => {
     success: true,
     avatarUrl: updatedUser.avatarUrl,
     message: avatarUrl ? "Hero portrait updated successfully!" : "Profile picture reset to default.",
+  });
+}));
+
+// POST /api/character/brain-game-complete - Award rewards and attribute gains for completing cognitive brain games
+router.post("/brain-game-complete", asyncHandler(async (req: AuthedRequest, res) => {
+  const userId = req.userId!;
+  const { gameTitle, score } = req.body;
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, include: { attributes: true } });
+
+  const xpReward = 50;
+  const goldReward = 20;
+  const xpResult = applyXpGain(user.xp, xpReward);
+
+  await prisma.$transaction(async (tx: any) => {
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        xp: xpResult.newTotalXp,
+        level: xpResult.afterLevel,
+        gold: { increment: goldReward },
+      },
+    });
+
+    await tx.characterAttribute.upsert({
+      where: { userId },
+      create: { userId, intellect: 11, discipline: 11 },
+      update: {
+        intellect: { increment: 1 },
+        discipline: { increment: 1 },
+      },
+    });
+
+    await tx.activityLog.create({
+      data: {
+        userId,
+        action: "quest_completed",
+        message: `🧠 Mastered Brain Challenge "${gameTitle || "Mind Workout"}" (Score: ${score || 100})`,
+        xpGained: xpReward,
+        goldGained: goldReward,
+      },
+    });
+
+    if (xpResult.leveledUp) {
+      await tx.user.update({
+        where: { id: userId },
+        data: { skillPoints: { increment: xpResult.levelsGained } },
+      });
+    }
+  });
+
+  res.json({
+    success: true,
+    xpGained: xpReward,
+    goldGained: goldReward,
+    leveledUp: xpResult.leveledUp,
+    newLevel: xpResult.afterLevel,
+    message: `+${xpReward} XP, +${goldReward} Gold, +1 Intellect 🧠 & +1 Discipline 🧘!`,
   });
 }));
 

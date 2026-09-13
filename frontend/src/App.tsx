@@ -21,6 +21,7 @@ import BossBattle from "./pages/BossBattle";
 import AdventureMap from "./pages/AdventureMap";
 import SkillTree from "./pages/SkillTree";
 import FocusMode from "./pages/FocusMode";
+import BrainGames from "./pages/BrainGames";
 
 export default function App() {
   return (
@@ -37,6 +38,7 @@ export default function App() {
                 <Route element={<ProtectedRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/quests" element={<Quests />} />
+                  <Route path="/brain-games" element={<BrainGames />} />
                   <Route path="/notifications" element={<Notifications />} />
                   <Route path="/boss" element={<BossBattle />} />
                   <Route path="/adventure" element={<AdventureMap />} />
