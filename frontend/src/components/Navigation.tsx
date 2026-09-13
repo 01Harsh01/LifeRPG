@@ -30,11 +30,18 @@ import { isSoundEnabled, setSoundEnabled, playClickSound } from "../utils/sound"
 import { UserAvatar } from "./UserAvatar";
 import { computeLevelFromXp } from "../utils/xp";
 
-const NAV_ITEMS = [
+interface NavItem {
+  to: string;
+  label: string;
+  icon: any;
+  badge?: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/quests", label: "Quest Log", icon: Swords },
-  { to: "/brain-games", label: "Mind Sanctum", icon: Brain, badge: "50 IQ" },
-  { to: "/boss", label: "Boss Battles", icon: ShieldAlert, badge: "Raid" },
+  { to: "/brain-games", label: "Mind Sanctum", icon: Brain },
+  { to: "/boss", label: "Boss Battles", icon: ShieldAlert },
   { to: "/focus", label: "Focus Chamber", icon: Flame },
   { to: "/adventure", label: "Adventure Map", icon: Compass },
   { to: "/skills", label: "Skill Tree", icon: Zap },
@@ -276,7 +283,7 @@ export function MobileNav() {
                 onClick={() => setMoreOpen(false)}
                 className="card p-3 flex items-center gap-2.5 text-xs font-medium hover:border-gold/40"
               >
-                <Brain size={17} className="text-gold" /> Mind Sanctum (50 IQ)
+                <Brain size={17} className="text-gold" /> Mind Sanctum
               </NavLink>
               <NavLink
                 to="/settings?tab=notifications"

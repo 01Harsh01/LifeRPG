@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
 import {
   Brain,
   Zap,
@@ -29,9 +28,12 @@ import { useToast } from "../components/Toast";
 import { fireConfetti } from "../utils/confetti";
 import {
   playClickSound,
-  playLevelUpSound,
-  playQuestCompleteSound,
-  playCoinSound,
+  playBrainCorrectSound,
+  playBrainWrongSound,
+  playBrainLevelUpSound,
+  playBrainTickSound,
+  playBrainMasterySound,
+  playBeaconFlashSound,
 } from "../utils/sound";
 
 export interface PlayableGameDef {
@@ -55,8 +57,8 @@ export const PLAYABLE_BRAIN_GAMES: PlayableGameDef[] = [
     skill: "Visual Retention Span",
     icon: "🧠",
     difficulty: "Novice",
-    description: "Memorize expanding spatial patterns flashed on arcane grids. As levels rise, the grid expands from 3×3 to 4×4 with more hidden tiles.",
-    levelsCount: 5,
+    description: "Memorize expanding spatial patterns flashed on arcane grids. Progresses through 7 levels from 3×3 up to an intense 5×5 grid with 10 targets.",
+    levelsCount: 7,
     statBonus: "+50 XP Intellect",
     iqWeight: 14,
   },
@@ -67,8 +69,8 @@ export const PLAYABLE_BRAIN_GAMES: PlayableGameDef[] = [
     skill: "Selective Attention & Focus",
     icon: "🎨",
     difficulty: "Adept",
-    description: "Overcome subconscious brain reflexes: choose the font ink color while actively ignoring what the word spells under accelerating timers.",
-    levelsCount: 5,
+    description: "Overcome automatic reading reflexes: select the font ink color while ignoring what the text spells under accelerating countdowns across 7 levels.",
+    levelsCount: 7,
     statBonus: "+55 XP Discipline",
     iqWeight: 16,
   },
@@ -78,9 +80,9 @@ export const PLAYABLE_BRAIN_GAMES: PlayableGameDef[] = [
     domain: "Numerical Reasoning",
     skill: "Calculation Agility",
     icon: "🔢",
-    difficulty: "Novice",
-    description: "Solve rapid-fire equations under pressure. Progresses from single-digit addition to two-digit multiplication, division, and missing variables.",
-    levelsCount: 5,
+    difficulty: "Master",
+    description: "Rapid mental calculations across 8 levels: from single-digit addition to two-digit multiplication, order of operations, missing variables, and squares.",
+    levelsCount: 8,
     statBonus: "+50 XP Intellect",
     iqWeight: 15,
   },
@@ -91,8 +93,8 @@ export const PLAYABLE_BRAIN_GAMES: PlayableGameDef[] = [
     skill: "Visual Discrimination",
     icon: "🔎",
     difficulty: "Adept",
-    description: "Spot the single outlier rune among identical glyphs. Grids grow from 3×3 to 5×5 while symbol variations become increasingly subtle.",
-    levelsCount: 5,
+    description: "Spot the single outlier rune among identical glyphs across 8 levels. Grids scale from 3×3 to 6×6 (36 runes) with subtle micro-differences.",
+    levelsCount: 8,
     statBonus: "+50 XP Intellect",
     iqWeight: 15,
   },
@@ -102,9 +104,9 @@ export const PLAYABLE_BRAIN_GAMES: PlayableGameDef[] = [
     domain: "Working Memory Capacity",
     skill: "Information Chunking",
     icon: "🧮",
-    difficulty: "Master",
-    description: "Absorb sequences of digits shown one by one. In advanced levels, you must reconstruct the entire sequence completely backwards!",
-    levelsCount: 6,
+    difficulty: "Grandmaster",
+    description: "Absorb sequences of digits. Levels 1–4 require forward recall, while advanced Levels 5–8 require complete backwards reconstruction at hyper-speeds!",
+    levelsCount: 8,
     statBonus: "+60 XP Intellect",
     iqWeight: 18,
   },
@@ -115,8 +117,8 @@ export const PLAYABLE_BRAIN_GAMES: PlayableGameDef[] = [
     skill: "Attentional Conflict Control",
     icon: "🏹",
     difficulty: "Adept",
-    description: "Identify the orientation of the CENTER arrow while surrounding flanker arrows point in misleading opposite directions at lightning speed.",
-    levelsCount: 5,
+    description: "Identify the orientation of the CENTER arrow while surrounding flankers (up to 9 arrows) distract your gaze under sub-second reaction windows across 7 levels.",
+    levelsCount: 7,
     statBonus: "+55 XP Discipline",
     iqWeight: 16,
   },
@@ -126,9 +128,9 @@ export const PLAYABLE_BRAIN_GAMES: PlayableGameDef[] = [
     domain: "Inductive Logic",
     skill: "Mathematical Reasoning",
     icon: "📈",
-    difficulty: "Master",
-    description: "Deduce hidden mathematical formulas behind number series: arithmetic steps, Fibonacci growth, geometric doubling, and polynomial patterns.",
-    levelsCount: 5,
+    difficulty: "Grandmaster",
+    description: "Solve inductive mathematical formulas across 8 levels: linear arithmetic, geometric powers, Fibonacci sequences, quadratic differences, and prime patterns.",
+    levelsCount: 8,
     statBonus: "+65 XP Intellect",
     iqWeight: 17,
   },
@@ -138,9 +140,9 @@ export const PLAYABLE_BRAIN_GAMES: PlayableGameDef[] = [
     domain: "Processing Speed",
     skill: "Motor Reaction Latency",
     icon: "⚡",
-    difficulty: "Novice",
-    description: "Test your raw neural transmission speed in milliseconds. Wait for the beacon to flare golden and strike before time runs out.",
-    levelsCount: 5,
+    difficulty: "Master",
+    description: "Test your raw neural transmission speed in milliseconds. Target reaction times tighten across 7 levels from 380ms down to elite < 180ms reflex thresholds.",
+    levelsCount: 7,
     statBonus: "+45 XP Discipline",
     iqWeight: 14,
   },
@@ -167,16 +169,16 @@ export default function BrainGames() {
   });
 
   const baseIq = 100;
-  const userIq = Math.min(160, baseIq + completedGameIds.length * 6.5);
+  const userIq = Math.min(160, baseIq + completedGameIds.length * 7.5);
 
   // --- GAME 1: Pattern Memory Matrix State ---
-  const [matrixGridSize, setMatrixGridSize] = useState(3); // 3x3 or 4x4
+  const [matrixGridSize, setMatrixGridSize] = useState(3); // 3x3, 4x4, 5x5
   const [matrixTargetIndices, setMatrixTargetIndices] = useState<number[]>([]);
   const [matrixSelectedIndices, setMatrixSelectedIndices] = useState<number[]>([]);
   const [matrixShowing, setMatrixShowing] = useState(false);
 
   // --- GAME 2: Stroop State ---
-  const [stroopWord, setStroopWord] = useState({ text: "RED", color: "text-blue-500", ink: "blue" });
+  const [stroopWord, setStroopWord] = useState({ text: "RED", color: "text-red-500", ink: "red" });
   const [stroopStreak, setStroopStreak] = useState(0);
   const [stroopTimeLeft, setStroopTimeLeft] = useState(12);
   const stroopTimerRef = useRef<any>(null);
@@ -184,8 +186,6 @@ export default function BrainGames() {
   // --- GAME 3: Speed Math State ---
   const [mathQ, setMathQ] = useState({ expr: "8 + 7", ans: 15, options: [15, 13, 16, 14] });
   const [mathStreak, setMathStreak] = useState(0);
-  const [mathTimeLeft, setMathTimeLeft] = useState(15);
-  const mathTimerRef = useRef<any>(null);
 
   // --- GAME 4: Odd-One-Out State ---
   const [oddGrid, setOddGrid] = useState<{ symbols: string[]; oddIndex: number; size: number }>({
@@ -223,8 +223,8 @@ export default function BrainGames() {
 
   // Award rewards on mastering all levels of a game
   async function handleGameMastery(gameId: string) {
-    playLevelUpSound();
-    fireConfetti(70);
+    playBrainMasterySound();
+    fireConfetti(80);
 
     const game = PLAYABLE_BRAIN_GAMES.find((g) => g.id === gameId);
     const title = game ? game.title : "Brain Workout";
@@ -232,7 +232,7 @@ export default function BrainGames() {
     try {
       await api.post("/character/brain-game-complete", {
         gameTitle: title,
-        score: 500,
+        score: 600,
       });
       await refreshUser();
     } catch {
@@ -249,14 +249,16 @@ export default function BrainGames() {
 
     setGameCompleted(true);
     setIsPlaying(false);
-    toast.push(`🏆 Mastered all levels of ${title}! +50 XP, +20 Gold, +1 Intellect 🧠!`, "success");
+    toast.push(`🏆 Mastered all ${game?.levelsCount || 7} levels of ${title}! +50 XP, +20 Gold, +1 Intellect 🧠!`, "success");
   }
 
-  // --- GAME 1: Pattern Memory Matrix Engine ---
+  // --- GAME 1: Pattern Memory Matrix Engine (7 Levels) ---
   function startMemoryMatrixRound(lvl: number) {
-    const size = lvl <= 2 ? 3 : 4; // 3x3 at lv1-2, 4x4 at lv3-5
+    // lvl 1-2: 3x3, lvl 3-5: 4x4, lvl 6-7: 5x5
+    const size = lvl <= 2 ? 3 : lvl <= 5 ? 4 : 5;
     const totalTiles = size * size;
-    const countToMemorize = Math.min(totalTiles - 2, lvl + 2); // 3, 4, 5, 6, 7
+    // Targets: lvl 1: 3, lvl 2: 4, lvl 3: 5, lvl 4: 6, lvl 5: 7, lvl 6: 8, lvl 7: 10
+    const countToMemorize = lvl === 1 ? 3 : lvl === 2 ? 4 : lvl === 3 ? 5 : lvl === 4 ? 6 : lvl === 5 ? 7 : lvl === 6 ? 8 : 10;
 
     setMatrixGridSize(size);
     setMatrixSelectedIndices([]);
@@ -269,7 +271,8 @@ export default function BrainGames() {
     const targets = Array.from(chosen);
     setMatrixTargetIndices(targets);
 
-    const flashDuration = Math.max(900, 1800 - lvl * 150);
+    // Flash speed accelerates with level
+    const flashDuration = Math.max(800, 1850 - lvl * 150);
     setTimeout(() => {
       setMatrixShowing(false);
     }, flashDuration);
@@ -279,35 +282,37 @@ export default function BrainGames() {
     if (matrixShowing || !isPlaying) return;
     if (matrixSelectedIndices.includes(idx)) return;
 
-    playClickSound();
     const nextSelected = [...matrixSelectedIndices, idx];
     setMatrixSelectedIndices(nextSelected);
 
     // check if incorrect tile
     if (!matrixTargetIndices.includes(idx)) {
-      playClickSound();
+      playBrainWrongSound();
       toast.push("Missed a tile! Restarting round...", "error");
       setTimeout(() => startMemoryMatrixRound(currentLevel), 600);
       return;
     }
 
+    // correct tile selected
+    playBrainTickSound();
+
     // check if all targets selected
     if (nextSelected.length === matrixTargetIndices.length) {
-      playQuestCompleteSound();
       setGameScore((s) => s + 100);
 
-      if (currentLevel >= 5) {
+      if (currentLevel >= 7) {
         handleGameMastery("memory_matrix");
       } else {
+        playBrainLevelUpSound();
         const nxt = currentLevel + 1;
         setCurrentLevel(nxt);
         toast.push(`Level ${currentLevel} cleared! Advancing to Level ${nxt}...`, "success");
-        setTimeout(() => startMemoryMatrixRound(nxt), 800);
+        setTimeout(() => startMemoryMatrixRound(nxt), 750);
       }
     }
   }
 
-  // --- GAME 2: Stroop Interference Engine ---
+  // --- GAME 2: Stroop Interference Engine (7 Levels) ---
   const STROOP_PALETTE = [
     { name: "RED", textClass: "text-red-500", ink: "red" },
     { name: "BLUE", textClass: "text-blue-500", ink: "blue" },
@@ -315,10 +320,12 @@ export default function BrainGames() {
     { name: "YELLOW", textClass: "text-amber-400", ink: "yellow" },
     { name: "PURPLE", textClass: "text-purple-400", ink: "purple" },
     { name: "ORANGE", textClass: "text-orange-400", ink: "orange" },
+    { name: "CYAN", textClass: "text-cyan-400", ink: "cyan" },
+    { name: "PINK", textClass: "text-pink-400", ink: "pink" },
   ];
 
   function generateStroopWord(lvl: number) {
-    const poolSize = lvl <= 2 ? 4 : 6;
+    const poolSize = lvl <= 2 ? 4 : lvl <= 4 ? 6 : 8;
     const pool = STROOP_PALETTE.slice(0, poolSize);
     const textChoice = pool[Math.floor(Math.random() * pool.length)];
     const inkChoice = pool[Math.floor(Math.random() * pool.length)];
@@ -334,76 +341,106 @@ export default function BrainGames() {
     if (!isPlaying) return;
 
     if (chosenInk === stroopWord.ink) {
-      playCoinSound();
+      playBrainCorrectSound();
       const nxtStreak = stroopStreak + 1;
       setStroopStreak(nxtStreak);
       setGameScore((s) => s + 50);
 
-      if (nxtStreak >= 4 * currentLevel) {
-        if (currentLevel >= 5) {
+      const requiredStreak = 3 + Math.floor(currentLevel * 0.7); // 3 to 7
+      if (nxtStreak >= requiredStreak) {
+        if (currentLevel >= 7) {
           handleGameMastery("stroop_reflex");
           return;
         } else {
+          playBrainLevelUpSound();
           const nxt = currentLevel + 1;
           setCurrentLevel(nxt);
-          toast.push(`Level ${currentLevel} conquered! Speed increasing...`, "success");
-          setStroopTimeLeft(Math.max(8, 14 - nxt));
+          setStroopStreak(0);
+          toast.push(`Level ${currentLevel} conquered! Speed increasing to Level ${nxt}...`, "success");
+          setStroopTimeLeft(Math.max(4, 13 - nxt));
         }
       }
       generateStroopWord(currentLevel);
     } else {
-      playClickSound();
+      playBrainWrongSound();
       toast.push("Wrong ink color! Streak reset.", "error");
       setStroopStreak(0);
       generateStroopWord(currentLevel);
     }
   }
 
-  // --- GAME 3: Speed Math Engine ---
+  // --- GAME 3: Speed Math Engine (8 Levels) ---
   function generateMathQuestion(lvl: number) {
     let expr = "";
     let ans = 0;
 
     if (lvl === 1) {
-      // Single digit addition
+      // Single digit addition / subtraction
       const a = Math.floor(Math.random() * 9) + 2;
       const b = Math.floor(Math.random() * 9) + 2;
-      expr = `${a} + ${b}`;
-      ans = a + b;
+      if (Math.random() > 0.5) {
+        expr = `${a} + ${b}`;
+        ans = a + b;
+      } else {
+        expr = `${a + b} - ${a}`;
+        ans = b;
+      }
     } else if (lvl === 2) {
       // 2-digit addition & simple mult
       const isMult = Math.random() > 0.5;
       if (isMult) {
-        const a = Math.floor(Math.random() * 8) + 3;
-        const b = Math.floor(Math.random() * 8) + 3;
+        const a = Math.floor(Math.random() * 7) + 3;
+        const b = Math.floor(Math.random() * 7) + 3;
         expr = `${a} × ${b}`;
         ans = a * b;
       } else {
-        const a = Math.floor(Math.random() * 30) + 12;
-        const b = Math.floor(Math.random() * 30) + 12;
+        const a = Math.floor(Math.random() * 35) + 15;
+        const b = Math.floor(Math.random() * 35) + 15;
         expr = `${a} + ${b}`;
         ans = a + b;
       }
     } else if (lvl === 3) {
       // Division & Subtraction
-      const b = Math.floor(Math.random() * 7) + 3;
-      const a = b * (Math.floor(Math.random() * 8) + 2);
+      const b = Math.floor(Math.random() * 8) + 3;
+      const a = b * (Math.floor(Math.random() * 9) + 2);
       expr = `${a} ÷ ${b}`;
       ans = a / b;
     } else if (lvl === 4) {
-      // 3 terms or missing variables
-      const a = Math.floor(Math.random() * 20) + 5;
-      const b = Math.floor(Math.random() * 15) + 3;
-      const c = Math.floor(Math.random() * 10) + 2;
+      // 3 terms: a + b - c
+      const a = Math.floor(Math.random() * 25) + 8;
+      const b = Math.floor(Math.random() * 20) + 5;
+      const c = Math.floor(Math.random() * 15) + 2;
       expr = `${a} + ${b} - ${c}`;
       ans = a + b - c;
-    } else {
-      // Advanced mental math
-      const a = Math.floor(Math.random() * 12) + 6;
-      const b = Math.floor(Math.random() * 12) + 6;
-      const c = Math.floor(Math.random() * 25) + 10;
+    } else if (lvl === 5) {
+      // Precedence: a * b + c
+      const a = Math.floor(Math.random() * 9) + 4;
+      const b = Math.floor(Math.random() * 8) + 3;
+      const c = Math.floor(Math.random() * 30) + 5;
       expr = `${a} × ${b} + ${c}`;
       ans = a * b + c;
+    } else if (lvl === 6) {
+      // Parenthesized formula: (a + b) * c
+      const a = Math.floor(Math.random() * 10) + 4;
+      const b = Math.floor(Math.random() * 8) + 2;
+      const c = Math.floor(Math.random() * 5) + 2;
+      expr = `(${a} + ${b}) × ${c}`;
+      ans = (a + b) * c;
+    } else if (lvl === 7) {
+      // Missing variable: a × ? + b = ans
+      const a = Math.floor(Math.random() * 8) + 3;
+      const unknown = Math.floor(Math.random() * 8) + 2;
+      const b = Math.floor(Math.random() * 15) + 3;
+      const rightSide = a * unknown + b;
+      expr = `${a} × ? + ${b} = ${rightSide}`;
+      ans = unknown;
+    } else {
+      // Grandmaster: Squares & mixed mental math: a² - b × c
+      const a = Math.floor(Math.random() * 6) + 11; // 11 to 16
+      const b = Math.floor(Math.random() * 8) + 3;
+      const c = Math.floor(Math.random() * 6) + 2;
+      expr = `${a}² - (${b} × ${c})`;
+      ans = a * a - b * c;
     }
 
     const options = [ans, ans + 2, ans - 3, ans + 5].sort(() => Math.random() - 0.5);
@@ -414,44 +451,49 @@ export default function BrainGames() {
     if (!isPlaying) return;
 
     if (choice === mathQ.ans) {
-      playCoinSound();
+      playBrainCorrectSound();
       const nxt = mathStreak + 1;
       setMathStreak(nxt);
       setGameScore((s) => s + 60);
 
-      if (nxt >= 4 * currentLevel) {
-        if (currentLevel >= 5) {
+      const reqStreak = 3;
+      if (nxt >= reqStreak) {
+        if (currentLevel >= 8) {
           handleGameMastery("speed_math");
           return;
         } else {
+          playBrainLevelUpSound();
           const nxtLvl = currentLevel + 1;
           setCurrentLevel(nxtLvl);
-          toast.push(`Level ${currentLevel} cleared! Complex formulas unlocked...`, "success");
+          setMathStreak(0);
+          toast.push(`Level ${currentLevel} cleared! Unlocking Level ${nxtLvl}...`, "success");
         }
       }
       generateMathQuestion(currentLevel);
     } else {
-      playClickSound();
+      playBrainWrongSound();
       toast.push(`Incorrect! Correct answer was ${mathQ.ans}`, "error");
+      setMathStreak(0);
       generateMathQuestion(currentLevel);
     }
   }
 
-  // --- GAME 4: Odd-One-Out Engine ---
+  // --- GAME 4: Odd-One-Out Engine (8 Levels) ---
   const SYMBOL_SETS = [
-    { base: "⚔️", odd: "🗡️" },
-    { base: "🛡️", odd: "🔰" },
-    { base: "🔮", odd: "🔮" },
-    { base: "⭐", odd: "🌟" },
-    { base: "👑", odd: "👒" },
-    { base: "🔥", odd: "💥" },
-    { base: "💎", odd: "💍" },
+    { base: "⚔️", odd: "🗡️" }, // Lvl 1: 3x3
+    { base: "🔮", odd: "🧿" }, // Lvl 2: 3x3
+    { base: "⭐", odd: "🌟" }, // Lvl 3: 4x4
+    { base: "👑", odd: "👒" }, // Lvl 4: 4x4
+    { base: "💎", odd: "💍" }, // Lvl 5: 5x5
+    { base: "⚡", odd: "🌩️" }, // Lvl 6: 5x5
+    { base: "🔶", odd: "🔸" }, // Lvl 7: 6x6
+    { base: "🔴", odd: "🛑" }, // Lvl 8: 6x6 (Grandmaster subtle outline)
   ];
 
   function generateOddGrid(lvl: number) {
-    const size = lvl <= 2 ? 3 : lvl <= 4 ? 4 : 5; // 3x3 -> 4x4 -> 5x5
+    const size = lvl <= 2 ? 3 : lvl <= 4 ? 4 : lvl <= 6 ? 5 : 6; // 3x3 -> 4x4 -> 5x5 -> 6x6
     const total = size * size;
-    const pair = SYMBOL_SETS[(lvl - 1) % SYMBOL_SETS.length];
+    const pair = SYMBOL_SETS[Math.min(lvl - 1, SYMBOL_SETS.length - 1)];
     const oddIdx = Math.floor(Math.random() * total);
 
     const symbols = Array.from({ length: total }, (_, i) => (i === oddIdx ? pair.odd : pair.base));
@@ -462,27 +504,30 @@ export default function BrainGames() {
     if (!isPlaying) return;
 
     if (idx === oddGrid.oddIndex) {
-      playCoinSound();
+      playBrainCorrectSound();
       setGameScore((s) => s + 80);
 
-      if (currentLevel >= 5) {
+      if (currentLevel >= 8) {
         handleGameMastery("odd_one_out");
       } else {
+        playBrainLevelUpSound();
         const nxt = currentLevel + 1;
         setCurrentLevel(nxt);
         toast.push(`Sharp eye! Advancing to Level ${nxt}...`, "success");
         generateOddGrid(nxt);
       }
     } else {
-      playClickSound();
+      playBrainWrongSound();
       toast.push("Not the outlier! Look closer.", "error");
     }
   }
 
-  // --- GAME 5: Digit Span Forward & Reverse Engine ---
+  // --- GAME 5: Digit Span Forward & Reverse Engine (8 Levels) ---
   function startDigitSpanRound(lvl: number) {
-    const len = lvl <= 3 ? lvl + 2 : lvl + 1; // 3 digits up to 7 digits
-    const isRev = lvl >= 4; // Levels 4, 5, 6 require REVERSE order!
+    // lvl 1: 3, lvl 2: 4, lvl 3: 5, lvl 4: 6 (forward)
+    // lvl 5: 4, lvl 6: 5, lvl 7: 6, lvl 8: 7 (REVERSE)
+    const isRev = lvl >= 5;
+    const len = lvl <= 4 ? lvl + 2 : lvl - 1; // 3,4,5,6 forward; 4,5,6,7 reverse
     setDigitIsReverse(isRev);
     setDigitUserInput("");
     setDigitAwaitingInput(false);
@@ -493,22 +538,24 @@ export default function BrainGames() {
     }
     setDigitChain(digits);
 
-    // Flash digits sequentially
+    // Flash speed increases level by level
+    const speed = Math.max(550, 950 - lvl * 50);
+
     let step = 0;
     setDigitDisplayIndex(digits[0]);
-    playClickSound();
+    playBrainTickSound();
 
     const interval = setInterval(() => {
       step++;
       if (step < digits.length) {
         setDigitDisplayIndex(digits[step]);
-        playClickSound();
+        playBrainTickSound();
       } else {
         clearInterval(interval);
         setDigitDisplayIndex(null);
         setDigitAwaitingInput(true);
       }
-    }, 900);
+    }, speed);
   }
 
   function handleDigitSubmit(e: React.FormEvent) {
@@ -520,35 +567,45 @@ export default function BrainGames() {
       : digitChain.join("");
 
     if (digitUserInput.trim() === expected) {
-      playQuestCompleteSound();
+      playBrainCorrectSound();
       setGameScore((s) => s + 120);
 
-      if (currentLevel >= 6) {
+      if (currentLevel >= 8) {
         handleGameMastery("digit_span");
       } else {
+        playBrainLevelUpSound();
         const nxt = currentLevel + 1;
         setCurrentLevel(nxt);
-        toast.push(`Correct! Level ${currentLevel} mastered. Advancing...`, "success");
+        toast.push(`Correct! Level ${currentLevel} mastered. Advancing to Level ${nxt}...`, "success");
         setTimeout(() => startDigitSpanRound(nxt), 800);
       }
     } else {
-      playClickSound();
+      playBrainWrongSound();
       toast.push(`Incorrect! Sequence was ${expected}. Try again.`, "error");
       setTimeout(() => startDigitSpanRound(currentLevel), 800);
     }
   }
 
-  // --- GAME 6: Arrow Flanker Engine ---
+  // --- GAME 6: Arrow Flanker Engine (7 Levels) ---
   function generateFlanker(lvl: number) {
-    const isCongruent = lvl === 1 ? true : Math.random() > 0.5;
+    // Arrow counts: lvl 1-2: 5 arrows, lvl 3-4: 7 arrows, lvl 5-7: 9 arrows
+    const arrowCount = lvl <= 2 ? 5 : lvl <= 4 ? 7 : 9;
+    const isCongruent = lvl === 1 ? true : Math.random() > 0.6;
     const centerDir: "left" | "right" = Math.random() > 0.5 ? "left" : "right";
     const flankerDir = isCongruent ? centerDir : centerDir === "left" ? "right" : "left";
 
     const cSymbol = centerDir === "left" ? "←" : "→";
     const fSymbol = flankerDir === "left" ? "←" : "→";
 
+    const half = Math.floor(arrowCount / 2);
+    const displayArr = [
+      ...Array(half).fill(fSymbol),
+      cSymbol,
+      ...Array(half).fill(fSymbol),
+    ];
+
     setFlankerArrows({
-      display: [fSymbol, fSymbol, cSymbol, fSymbol, fSymbol],
+      display: displayArr,
       targetDir: centerDir,
     });
   }
@@ -557,51 +614,78 @@ export default function BrainGames() {
     if (!isPlaying) return;
 
     if (dir === flankerArrows.targetDir) {
-      playCoinSound();
+      playBrainCorrectSound();
       const nxt = flankerStreak + 1;
       setFlankerStreak(nxt);
       setGameScore((s) => s + 40);
 
-      if (nxt >= 5 * currentLevel) {
-        if (currentLevel >= 5) {
+      const required = 4;
+      if (nxt >= required) {
+        if (currentLevel >= 7) {
           handleGameMastery("arrow_flanker");
           return;
         } else {
+          playBrainLevelUpSound();
           const nxtLvl = currentLevel + 1;
           setCurrentLevel(nxtLvl);
-          toast.push(`Level ${currentLevel} cleared! Distractors speeding up...`, "success");
+          setFlankerStreak(0);
+          toast.push(`Level ${currentLevel} cleared! Distractors expanding...`, "success");
         }
       }
       generateFlanker(currentLevel);
     } else {
-      playClickSound();
+      playBrainWrongSound();
       toast.push("Look at the CENTER arrow only! Streak reset.", "error");
       setFlankerStreak(0);
       generateFlanker(currentLevel);
     }
   }
 
-  // --- GAME 7: Number Sequence Logic Engine ---
+  // --- GAME 7: Number Sequence Logic Engine (8 Levels) ---
   const SEQUENCES_BY_LEVEL: Record<number, { series: string; ans: number; opts: number[] }[]> = {
     1: [
       { series: "3, 6, 9, 12, ?", ans: 15, opts: [15, 14, 16, 18] },
-      { series: "5, 10, 15, 20, ?", ans: 25, opts: [25, 24, 30, 22] },
+      { series: "7, 14, 21, 28, ?", ans: 35, opts: [35, 32, 42, 30] },
+      { series: "100, 95, 90, 85, ?", ans: 80, opts: [80, 75, 82, 70] },
     ],
     2: [
       { series: "2, 4, 8, 16, ?", ans: 32, opts: [32, 24, 30, 64] },
-      { series: "1, 4, 9, 16, ?", ans: 25, opts: [25, 24, 26, 36] },
+      { series: "3, 9, 27, 81, ?", ans: 243, opts: [243, 162, 216, 324] },
+      { series: "64, 32, 16, 8, ?", ans: 4, opts: [4, 2, 6, 0] },
     ],
     3: [
-      { series: "1, 1, 2, 3, 5, 8, ?", ans: 13, opts: [13, 12, 14, 15] },
-      { series: "21, 18, 15, 12, ?", ans: 9, opts: [9, 8, 10, 6] },
+      { series: "1, 4, 9, 16, ?", ans: 25, opts: [25, 24, 26, 36] },
+      { series: "1, 8, 27, 64, ?", ans: 125, opts: [125, 100, 128, 216] },
+      { series: "25, 36, 49, 64, ?", ans: 81, opts: [81, 79, 85, 100] },
     ],
     4: [
-      { series: "2, 3, 5, 9, 17, ?", ans: 33, opts: [33, 31, 35, 25] },
-      { series: "4, 8, 7, 14, 13, ?", ans: 26, opts: [26, 25, 27, 28] },
+      { series: "1, 1, 2, 3, 5, 8, ?", ans: 13, opts: [13, 12, 14, 15] },
+      { series: "2, 4, 6, 10, 16, 26, ?", ans: 42, opts: [42, 38, 40, 48] },
+      { series: "1, 3, 4, 7, 11, 18, ?", ans: 29, opts: [29, 28, 30, 27] },
     ],
     5: [
+      // Alternating operations
+      { series: "2, 4, 3, 6, 5, 10, ?", ans: 9, opts: [9, 8, 12, 15] }, // *2, -1
+      { series: "5, 10, 8, 16, 14, 28, ?", ans: 26, opts: [26, 25, 30, 24] }, // *2, -2
+      { series: "4, 9, 7, 12, 10, 15, ?", ans: 13, opts: [13, 14, 12, 11] }, // +5, -2
+    ],
+    6: [
+      // Quadratic & n^2 + n difference series
       { series: "2, 6, 12, 20, 30, ?", ans: 42, opts: [42, 40, 44, 46] },
-      { series: "1, 8, 27, 64, ?", ans: 125, opts: [125, 100, 128, 216] },
+      { series: "3, 4, 7, 12, 19, ?", ans: 28, opts: [28, 26, 30, 31] }, // +1, +3, +5, +7, +9
+      { series: "1, 2, 5, 10, 17, ?", ans: 26, opts: [26, 25, 27, 28] }, // +1, +3, +5, +7, +9
+    ],
+    7: [
+      // Prime series & triangular numbers
+      { series: "2, 3, 5, 7, 11, 13, ?", ans: 17, opts: [17, 15, 19, 21] },
+      { series: "1, 3, 6, 10, 15, 21, ?", ans: 28, opts: [28, 27, 30, 26] },
+      { series: "11, 13, 17, 19, 23, ?", ans: 29, opts: [29, 27, 31, 25] },
+    ],
+    8: [
+      // Grandmaster: Double-exponential & recursive products
+      { series: "3, 7, 15, 31, 63, ?", ans: 127, opts: [127, 126, 128, 135] },
+      { series: "1, 2, 6, 24, 120, ?", ans: 720, opts: [720, 600, 740, 840] },
+      { series: "2, 3, 6, 18, 108, ?", ans: 1944, opts: [1944, 1296, 2160, 1800] },
     ],
   };
 
@@ -619,24 +703,25 @@ export default function BrainGames() {
     if (!isPlaying) return;
 
     if (choice === seqProblem.answer) {
-      playCoinSound();
+      playBrainCorrectSound();
       setGameScore((s) => s + 90);
 
-      if (currentLevel >= 5) {
+      if (currentLevel >= 8) {
         handleGameMastery("sequence_logic");
       } else {
+        playBrainLevelUpSound();
         const nxt = currentLevel + 1;
         setCurrentLevel(nxt);
         toast.push(`Formula solved! Advancing to Level ${nxt}...`, "success");
         generateSeqProblem(nxt);
       }
     } else {
-      playClickSound();
+      playBrainWrongSound();
       toast.push(`Incorrect! The next term was ${seqProblem.answer}.`, "error");
     }
   }
 
-  // --- GAME 8: Neural Reflex Beacon Engine ---
+  // --- GAME 8: Neural Reflex Beacon Engine (7 Levels) ---
   function startReflexRound(lvl: number) {
     setBeaconState("waiting");
     setReactionMs(null);
@@ -647,6 +732,7 @@ export default function BrainGames() {
     beaconTimeoutRef.current = setTimeout(() => {
       setBeaconState("ready");
       beaconStartRef.current = Date.now();
+      playBeaconFlashSound();
     }, delay);
   }
 
@@ -656,7 +742,7 @@ export default function BrainGames() {
     if (beaconState === "waiting") {
       clearTimeout(beaconTimeoutRef.current);
       setBeaconState("too_early");
-      playClickSound();
+      playBrainWrongSound();
       toast.push("Too early! Wait for the beacon to turn GOLD.", "error");
       return;
     }
@@ -666,22 +752,24 @@ export default function BrainGames() {
       setReactionMs(elapsed);
       setBeaconState("clicked");
 
-      // Thresholds get stricter level by level: 350ms, 300ms, 270ms, 240ms, 210ms
-      const targetThreshold = Math.max(200, 380 - currentLevel * 35);
+      // Thresholds get stricter level by level: 380, 330, 290, 255, 225, 200, 180 ms
+      const thresholds = [380, 330, 290, 255, 225, 200, 180];
+      const targetThreshold = thresholds[Math.min(currentLevel - 1, thresholds.length - 1)];
 
       if (elapsed <= targetThreshold) {
-        playQuestCompleteSound();
+        playBrainCorrectSound();
         setGameScore((s) => s + 100);
 
-        if (currentLevel >= 5) {
+        if (currentLevel >= 7) {
           handleGameMastery("reflex_beacon");
         } else {
+          playBrainLevelUpSound();
           const nxt = currentLevel + 1;
           setCurrentLevel(nxt);
-          toast.push(`Lightning reflex (${elapsed}ms)! Cleared Level ${currentLevel}.`, "success");
+          toast.push(`Lightning reflex (${elapsed}ms)! Cleared Level ${currentLevel}. Next threshold: < ${thresholds[nxt - 1]}ms`, "success");
         }
       } else {
-        playClickSound();
+        playBrainWrongSound();
         toast.push(`Recorded ${elapsed}ms (Target was < ${targetThreshold}ms). Try again!`, "info");
       }
     }
@@ -699,11 +787,10 @@ export default function BrainGames() {
       startMemoryMatrixRound(1);
     } else if (gameId === "stroop_reflex") {
       setStroopStreak(0);
-      setStroopTimeLeft(14);
+      setStroopTimeLeft(12);
       generateStroopWord(1);
     } else if (gameId === "speed_math") {
       setMathStreak(0);
-      setMathTimeLeft(20);
       generateMathQuestion(1);
     } else if (gameId === "odd_one_out") {
       generateOddGrid(1);
@@ -739,8 +826,8 @@ export default function BrainGames() {
               Cognitive Brain Forge & IQ Training
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-              Play 8 completely distinct, scientifically-grounded cognitive brain games that progressively increase in difficulty level-by-level.
-              Master working memory, cognitive inhibition, deductive math, and reaction time to elevate your permanent character <strong>Intellect (🧠)</strong>.
+              Play 8 distinct cognitive challenges scaling level-by-level up to Grandmaster hardness with reactive soundscapes.
+              Master spatial memory, color conflict inhibition, algebra formulas, and sub-200ms reflexes to boost character <strong>Intellect (🧠)</strong>.
             </p>
           </div>
 
@@ -749,7 +836,7 @@ export default function BrainGames() {
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-400 font-medium">Cognitive IQ Rating</span>
               <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-arcane/20 text-arcane border border-arcane/30">
-                {userIq >= 140 ? "Grandmaster" : userIq >= 125 ? "Master" : userIq >= 115 ? "Adept" : "Novice"}
+                {userIq >= 145 ? "Grandmaster" : userIq >= 130 ? "Master" : userIq >= 115 ? "Adept" : "Novice"}
               </span>
             </div>
             <div className="flex items-baseline gap-2">
@@ -814,9 +901,9 @@ export default function BrainGames() {
               <div className="w-16 h-16 rounded-full bg-gold/20 border border-gold/40 flex items-center justify-center text-3xl mx-auto shadow-goldGlow">
                 👑
               </div>
-              <h3 className="font-display text-2xl font-bold text-white">Challenge Conquered!</h3>
+              <h3 className="font-display text-2xl font-bold text-white">Grandmaster Conquered!</h3>
               <p className="text-xs text-slate-400">
-                You successfully mastered all {selectedGameObj.levelsCount} progressive levels of {selectedGameObj.title}!
+                You conquered all {selectedGameObj.levelsCount} escalating difficulty levels of {selectedGameObj.title}!
               </p>
               <div className="card p-4 bg-black/40 border-white/10 text-left space-y-1">
                 <p className="text-xs text-emerald-400 font-semibold flex items-center gap-1.5">
@@ -842,29 +929,33 @@ export default function BrainGames() {
                 Ready for Level {currentLevel}?
               </h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                This challenge gets harder level by level. Complete all {selectedGameObj.levelsCount} levels to earn maximum attribute gains.
+                This challenge gets harder level by level with unique sound effects. Clear all {selectedGameObj.levelsCount} levels to claim your cognitive mastery.
               </p>
               <button
                 type="button"
                 onClick={() => launchGame(selectedGameObj.id)}
                 className="btn-primary text-xs px-8 py-3 inline-flex items-center gap-2 font-bold shadow-glow"
               >
-                <Play size={15} /> Start Training Challenge
+                <Play size={15} /> Start Level-by-Level Challenge
               </button>
             </div>
           ) : activeGameId === "memory_matrix" ? (
             /* --- 1. Memory Matrix Play Area --- */
-            <div className="space-y-4 text-center max-w-sm mx-auto">
+            <div className="space-y-4 text-center max-w-md mx-auto">
               <div className="flex items-center justify-between text-xs font-semibold px-2">
-                <span className="text-slate-400">Level {currentLevel} of 5</span>
-                <span className="text-gold">Tiles to Memorize: {currentLevel + 2}</span>
+                <span className="text-slate-400">Level {currentLevel} of {selectedGameObj.levelsCount}</span>
+                <span className="text-gold">Tiles: {currentLevel === 1 ? 3 : currentLevel === 2 ? 4 : currentLevel === 3 ? 5 : currentLevel === 4 ? 6 : currentLevel === 5 ? 7 : currentLevel === 6 ? 8 : 10}</span>
               </div>
               <p className="text-xs text-slate-400">
                 {matrixShowing ? "👀 Memorize the glowing tiles..." : "👉 Tap the tiles that flashed!"}
               </p>
               <div
-                className={`grid gap-2.5 p-4 rounded-2xl bg-black/40 border border-white/10 ${
-                  matrixGridSize === 3 ? "grid-cols-3 max-w-[260px]" : "grid-cols-4 max-w-[320px]"
+                className={`grid gap-2 p-3 rounded-2xl bg-black/40 border border-white/10 ${
+                  matrixGridSize === 3
+                    ? "grid-cols-3 max-w-[240px]"
+                    : matrixGridSize === 4
+                    ? "grid-cols-4 max-w-[300px]"
+                    : "grid-cols-5 max-w-[360px]"
                 } mx-auto`}
               >
                 {Array.from({ length: matrixGridSize * matrixGridSize }).map((_, i) => {
@@ -876,7 +967,7 @@ export default function BrainGames() {
                       type="button"
                       disabled={matrixShowing}
                       onClick={() => handleMatrixTileClick(i)}
-                      className={`h-16 rounded-xl transition-all duration-150 border flex items-center justify-center text-xl font-bold ${
+                      className={`h-14 sm:h-16 rounded-xl transition-all duration-150 border flex items-center justify-center text-xl font-bold ${
                         isTarget
                           ? "bg-gold text-black border-gold shadow-goldGlow scale-95"
                           : isSelected
@@ -894,8 +985,8 @@ export default function BrainGames() {
             /* --- 2. Stroop Reflex Play Area --- */
             <div className="space-y-6 text-center max-w-md mx-auto">
               <div className="flex items-center justify-between text-xs font-semibold px-4">
-                <span className="text-slate-400">Streak: <span className="text-gold">{stroopStreak}</span></span>
-                <span className="text-slate-400">Required: {4 * currentLevel}</span>
+                <span className="text-slate-400">Streak: <span className="text-gold font-bold">{stroopStreak}</span></span>
+                <span className="text-slate-400">Target Streak: {3 + Math.floor(currentLevel * 0.7)}</span>
               </div>
               <div className="p-8 rounded-2xl bg-black/40 border border-white/10">
                 <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
@@ -905,8 +996,8 @@ export default function BrainGames() {
                   {stroopWord.text}
                 </p>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {STROOP_PALETTE.slice(0, currentLevel <= 2 ? 4 : 6).map((c) => (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {STROOP_PALETTE.slice(0, currentLevel <= 2 ? 4 : currentLevel <= 4 ? 6 : 8).map((c) => (
                   <button
                     key={c.ink}
                     type="button"
@@ -923,13 +1014,13 @@ export default function BrainGames() {
             <div className="space-y-6 text-center max-w-md mx-auto">
               <div className="flex items-center justify-between text-xs font-semibold px-4">
                 <span className="text-slate-400">Level {currentLevel} Formula</span>
-                <span className="text-gold font-bold">Solved: {mathStreak} / {4 * currentLevel}</span>
+                <span className="text-gold font-bold">Streak: {mathStreak} / 3</span>
               </div>
               <div className="p-8 rounded-2xl bg-black/40 border border-white/10">
                 <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
                   Solve Mental Math:
                 </p>
-                <p className="font-display text-4xl sm:text-5xl font-black text-white mt-2">
+                <p className="font-display text-3xl sm:text-4xl font-black text-white mt-2">
                   {mathQ.expr} = ?
                 </p>
               </div>
@@ -950,12 +1041,18 @@ export default function BrainGames() {
             /* --- 4. Odd-One-Out Play Area --- */
             <div className="space-y-4 text-center max-w-sm mx-auto">
               <div className="flex items-center justify-between text-xs font-semibold px-2">
-                <span className="text-slate-400">Level {currentLevel} Grid</span>
-                <span className="text-gold">Find the 1 outlier symbol</span>
+                <span className="text-slate-400">Level {currentLevel} Grid ({oddGrid.size}×{oddGrid.size})</span>
+                <span className="text-gold">Find the 1 outlier</span>
               </div>
               <div
-                className={`grid gap-2 p-4 rounded-2xl bg-black/40 border border-white/10 ${
-                  oddGrid.size === 3 ? "grid-cols-3 max-w-[240px]" : oddGrid.size === 4 ? "grid-cols-4 max-w-[290px]" : "grid-cols-5 max-w-[340px]"
+                className={`grid gap-2 p-3 rounded-2xl bg-black/40 border border-white/10 ${
+                  oddGrid.size === 3
+                    ? "grid-cols-3 max-w-[240px]"
+                    : oddGrid.size === 4
+                    ? "grid-cols-4 max-w-[290px]"
+                    : oddGrid.size === 5
+                    ? "grid-cols-5 max-w-[340px]"
+                    : "grid-cols-6 max-w-[380px]"
                 } mx-auto`}
               >
                 {oddGrid.symbols.map((s, idx) => (
@@ -963,7 +1060,7 @@ export default function BrainGames() {
                     key={idx}
                     type="button"
                     onClick={() => handleOddTileClick(idx)}
-                    className="h-14 rounded-xl bg-surface hover:bg-white/10 border border-white/10 hover:border-gold/50 flex items-center justify-center text-2xl transition active:scale-90"
+                    className="h-12 sm:h-14 rounded-xl bg-surface hover:bg-white/10 border border-white/10 hover:border-gold/50 flex items-center justify-center text-xl sm:text-2xl transition active:scale-90"
                   >
                     {s}
                   </button>
@@ -974,7 +1071,7 @@ export default function BrainGames() {
             /* --- 5. Digit Span Play Area --- */
             <div className="space-y-6 text-center max-w-md mx-auto">
               <div className="flex items-center justify-between text-xs font-semibold px-4">
-                <span className="text-slate-400">Level {currentLevel} of 6</span>
+                <span className="text-slate-400">Level {currentLevel} of {selectedGameObj.levelsCount}</span>
                 <span className="text-gold font-bold">
                   {digitIsReverse ? "⚠️ REVERSE ORDER" : "FORWARD ORDER"}
                 </span>
@@ -1011,32 +1108,40 @@ export default function BrainGames() {
             /* --- 6. Arrow Flanker Play Area --- */
             <div className="space-y-6 text-center max-w-md mx-auto">
               <div className="flex items-center justify-between text-xs font-semibold px-4">
-                <span className="text-slate-400">Streak: {flankerStreak}</span>
+                <span className="text-slate-400">Streak: {flankerStreak} / 4</span>
                 <span className="text-gold">Focus strictly on CENTER arrow!</span>
               </div>
-              <div className="p-8 rounded-2xl bg-black/40 border border-white/10">
-                <div className="flex justify-center items-center gap-3 text-4xl sm:text-5xl font-black text-slate-400">
-                  <span>{flankerArrows.display[0]}</span>
-                  <span>{flankerArrows.display[1]}</span>
-                  <span className="text-gold text-5xl sm:text-6xl scale-110 drop-shadow-[0_0_12px_rgba(232,182,79,0.7)]">
-                    {flankerArrows.display[2]}
-                  </span>
-                  <span>{flankerArrows.display[3]}</span>
-                  <span>{flankerArrows.display[4]}</span>
+              <div className="p-8 rounded-2xl bg-black/40 border border-white/10 overflow-x-auto">
+                <div className="flex justify-center items-center gap-2 sm:gap-3 text-3xl sm:text-5xl font-black text-slate-400 min-w-max">
+                  {flankerArrows.display.map((arrow, idx) => {
+                    const isCenter = idx === Math.floor(flankerArrows.display.length / 2);
+                    return isCenter ? (
+                      <span
+                        key={idx}
+                        className="text-gold text-4xl sm:text-6xl scale-110 drop-shadow-[0_0_12px_rgba(232,182,79,0.7)] px-1"
+                      >
+                        {arrow}
+                      </span>
+                    ) : (
+                      <span key={idx} className="opacity-75">
+                        {arrow}
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <button
                   type="button"
                   onClick={() => handleFlankerChoice("left")}
-                  className="py-4 rounded-xl bg-surface hover:bg-white/10 border border-white/15 hover:border-gold/40 text-2xl font-bold text-white transition active:scale-95"
+                  className="py-4 rounded-xl bg-surface hover:bg-white/10 border border-white/15 hover:border-gold/40 text-xl sm:text-2xl font-bold text-white transition active:scale-95"
                 >
                   ← LEFT
                 </button>
                 <button
                   type="button"
                   onClick={() => handleFlankerChoice("right")}
-                  className="py-4 rounded-xl bg-surface hover:bg-white/10 border border-white/15 hover:border-gold/40 text-2xl font-bold text-white transition active:scale-95"
+                  className="py-4 rounded-xl bg-surface hover:bg-white/10 border border-white/15 hover:border-gold/40 text-xl sm:text-2xl font-bold text-white transition active:scale-95"
                 >
                   RIGHT →
                 </button>
@@ -1046,14 +1151,14 @@ export default function BrainGames() {
             /* --- 7. Sequence Logic Play Area --- */
             <div className="space-y-6 text-center max-w-md mx-auto">
               <div className="flex items-center justify-between text-xs font-semibold px-4">
-                <span className="text-slate-400">Level {currentLevel} Inductive Pattern</span>
-                <span className="text-gold font-bold">Deduce the missing term</span>
+                <span className="text-slate-400">Level {currentLevel} Inductive Logic</span>
+                <span className="text-gold font-bold">Find missing term</span>
               </div>
               <div className="p-8 rounded-2xl bg-black/40 border border-white/10">
                 <p className="text-xs text-slate-400 uppercase tracking-widest font-semibold">
                   What number replaces ?
                 </p>
-                <p className="font-display text-3xl sm:text-4xl font-black text-white mt-2 tracking-wider">
+                <p className="font-display text-2xl sm:text-3xl font-black text-white mt-2 tracking-wider">
                   {seqProblem.series}
                 </p>
               </div>
@@ -1075,7 +1180,9 @@ export default function BrainGames() {
             <div className="space-y-6 text-center max-w-md mx-auto">
               <div className="flex items-center justify-between text-xs font-semibold px-4">
                 <span className="text-slate-400">Level {currentLevel} Threshold</span>
-                <span className="text-gold font-bold">&lt; {Math.max(200, 380 - currentLevel * 35)}ms Required</span>
+                <span className="text-gold font-bold">
+                  &lt; {[380, 330, 290, 255, 225, 200, 180][currentLevel - 1] || 180}ms Required
+                </span>
               </div>
               <div
                 onClick={handleBeaconClick}
@@ -1124,10 +1231,10 @@ export default function BrainGames() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="font-display text-xl sm:text-2xl font-bold text-white flex items-center gap-2">
-              <span>⚔️</span> All 8 Progressive Cognitive Brain Games
+              <span>⚔️</span> All 8 Multi-Level Cognitive Brain Games
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              Select any game below to load it into the arena. Every game features level-by-level difficulty scaling.
+              Select any game below to load it into the arena. Every game features 7 to 8 levels of escalating hardness.
             </p>
           </div>
         </div>
@@ -1170,7 +1277,7 @@ export default function BrainGames() {
                     </span>
                   ) : (
                     <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded border ${diffStyle}`}>
-                      {game.difficulty}
+                      {game.difficulty} ({game.levelsCount} Lvl)
                     </span>
                   )}
                 </div>
