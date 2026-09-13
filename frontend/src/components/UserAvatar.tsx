@@ -6,7 +6,6 @@ interface UserAvatarProps {
   name: string;
   size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
   equippedAvatar?: ShopItem | null;
-  equippedFrame?: ShopItem | null;
   className?: string;
   borderClass?: string;
 }
@@ -25,50 +24,38 @@ export function UserAvatar({
   name,
   size = "md",
   equippedAvatar,
-  equippedFrame,
   className = "",
   borderClass = "",
 }: UserAvatarProps) {
   const [imgError, setImgError] = useState(false);
 
-  // If an avatar skin is equipped from inventory, it takes visual priority over base avatarUrl
-  const effectiveAvatar = equippedAvatar?.icon || avatarUrl;
-
   const isImage =
-    Boolean(effectiveAvatar) &&
+    Boolean(avatarUrl) &&
     !imgError &&
-    (effectiveAvatar!.startsWith("http") ||
-      effectiveAvatar!.startsWith("data:image/") ||
-      effectiveAvatar!.startsWith("blob:") ||
-      effectiveAvatar!.startsWith("/"));
+    (avatarUrl!.startsWith("http") ||
+      avatarUrl!.startsWith("data:image/") ||
+      avatarUrl!.startsWith("blob:") ||
+      avatarUrl!.startsWith("/"));
 
   const sizeClasses = SIZE_MAP[size] || SIZE_MAP.md;
-
-  const hasGoldFrame =
-    equippedFrame?.name.toLowerCase().includes("gold") || equippedFrame?.rarity === "Legendary";
-  const hasPhoenixFrame = equippedFrame?.name.toLowerCase().includes("phoenix");
-
-  const resolvedBorder = borderClass || (hasPhoenixFrame
-    ? "ring-2 ring-orange-500 ring-offset-2 ring-offset-surface shadow-[0_0_20px_rgba(249,115,22,0.6)]"
-    : hasGoldFrame
-    ? "ring-2 ring-gold ring-offset-2 ring-offset-surface shadow-goldGlow"
-    : "border border-white/15");
 
   return (
     <div
       className={`relative shrink-0 overflow-hidden flex items-center justify-center font-display select-none transition-all duration-300 ${sizeClasses} ${
-        resolvedBorder
+        borderClass || "border border-white/15"
       } bg-gradient-to-br from-arcane/80 via-indigo-700 to-arcane2 text-white shadow-md ${className}`}
     >
       {isImage ? (
         <img
-          src={effectiveAvatar!}
+          src={avatarUrl!}
           alt={name}
           className="w-full h-full object-cover rounded-[inherit]"
           onError={() => setImgError(true)}
         />
-      ) : effectiveAvatar ? (
-        <span className="leading-none drop-shadow-sm">{effectiveAvatar}</span>
+      ) : avatarUrl ? (
+        <span className="leading-none drop-shadow-sm">{avatarUrl}</span>
+      ) : equippedAvatar?.icon ? (
+        <span className="leading-none drop-shadow-sm">{equippedAvatar.icon}</span>
       ) : (
         <span className="font-bold uppercase tracking-wider">
           {name ? name.charAt(0).toUpperCase() : "A"}
