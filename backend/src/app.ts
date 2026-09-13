@@ -13,6 +13,7 @@ import achievementRoutes from "./routes/achievements";
 import activityRoutes from "./routes/activity";
 import bossRoutes from "./routes/boss";
 import skillRoutes from "./routes/skills";
+import notificationsRoutes from "./routes/notifications";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler";
 
 const app = express();
@@ -56,6 +57,7 @@ const mountRoutes = (prefix: string) => {
   app.use(`${prefix}/activity`, activityRoutes);
   app.use(`${prefix}/boss`, bossRoutes);
   app.use(`${prefix}/skills`, skillRoutes);
+  app.use(`${prefix}/notifications`, notificationsRoutes);
 };
 
 mountRoutes("/api");

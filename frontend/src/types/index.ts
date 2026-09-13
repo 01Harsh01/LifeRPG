@@ -141,3 +141,15 @@ export interface CompleteQuestResult {
   user: User & { xpIntoLevel: number; xpForNextLevel: number; skillPoints: number };
   newAchievements: Achievement[];
 }
+
+export interface NotificationItem {
+  id: string;
+  type: "reminder" | "quest" | "streak" | "level_up" | "boss" | "reward" | "system";
+  priority: "low" | "medium" | "high" | "urgent";
+  title: string;
+  message: string;
+  timestamp: string;
+  actionUrl?: string;
+  actionLabel?: string;
+  badge?: string;
+}

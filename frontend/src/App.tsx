@@ -14,6 +14,7 @@ import Character from "./pages/Character";
 import Shop from "./pages/Shop";
 import Inventory from "./pages/Inventory";
 import Achievements from "./pages/Achievements";
+import Notifications from "./pages/Notifications";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
 import BossBattle from "./pages/BossBattle";
@@ -36,6 +37,7 @@ export default function App() {
                 <Route element={<ProtectedRoute />}>
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/quests" element={<Quests />} />
+                  <Route path="/notifications" element={<Notifications />} />
                   <Route path="/boss" element={<BossBattle />} />
                   <Route path="/adventure" element={<AdventureMap />} />
                   <Route path="/skills" element={<SkillTree />} />

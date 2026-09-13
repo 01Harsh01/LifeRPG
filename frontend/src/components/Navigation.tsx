@@ -20,6 +20,7 @@ import {
   Zap,
   Flame,
   ShieldAlert,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -31,6 +32,7 @@ import { computeLevelFromXp } from "../utils/xp";
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/quests", label: "Quest Log", icon: Swords },
+  { to: "/notifications", label: "Notifications", icon: Bell, badge: "Alerts" },
   { to: "/boss", label: "Boss Battles", icon: ShieldAlert, badge: "Raid" },
   { to: "/focus", label: "Focus Chamber", icon: Flame },
   { to: "/adventure", label: "Adventure Map", icon: Compass },
@@ -79,6 +81,21 @@ export function Sidebar() {
         </div>
 
         <div className="flex items-center gap-1">
+          {/* Notifications Link */}
+          <NavLink
+            to="/notifications"
+            title="Realm Notifications & Reminders"
+            aria-label="Notifications"
+            className={({ isActive }) =>
+              `p-1.5 rounded-lg transition relative ${
+                isActive ? "text-gold bg-white/10" : "text-slate-400 hover:text-gold hover:bg-white/5"
+              }`
+            }
+          >
+            <Bell size={17} />
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-arcane animate-pulse" />
+          </NavLink>
+
           {/* Light / Dark Mode Toggle */}
           <button
             onClick={handleToggleMode}
@@ -257,6 +274,13 @@ export function MobileNav() {
             )}
 
             <div className="grid grid-cols-2 gap-2">
+              <NavLink
+                to="/notifications"
+                onClick={() => setMoreOpen(false)}
+                className="card p-3 flex items-center gap-2.5 text-xs font-medium hover:border-arcane/40"
+              >
+                <Bell size={17} className="text-arcane" /> Notifications
+              </NavLink>
               <NavLink
                 to="/adventure"
                 onClick={() => setMoreOpen(false)}
