@@ -16,6 +16,7 @@ export interface User {
   longestStreak?: number;
   streakFreezeActive?: boolean;
   adventureWorld?: number;
+  equippedItems?: ShopItem[];
 }
 
 export interface Quest {

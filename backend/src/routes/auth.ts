@@ -88,11 +88,27 @@ router.post("/login", asyncHandler(async (req, res) => {
     });
   }
 
+  const equippedItems = await prisma.inventoryItem.findMany({
+    where: { userId: user.id, equipped: true },
+    include: { item: true },
+  });
+
   const token = signToken({ userId: user.id });
   res.cookie("token", token, COOKIE_OPTIONS);
   res.json({
     token,
-    user: { id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl, level: levelInfo.level, xp: user.xp, gold: user.gold },
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      level: levelInfo.level,
+      xp: user.xp,
+      gold: user.gold,
+      currentStreak: user.currentStreak,
+      longestStreak: user.longestStreak,
+      equippedItems: equippedItems.map((i: any) => i.item),
+    },
   });
 }));
 
@@ -113,6 +129,11 @@ router.get("/me", requireAuth, asyncHandler(async (req: AuthedRequest, res) => {
     });
   }
 
+  const equippedItems = await prisma.inventoryItem.findMany({
+    where: { userId: user.id, equipped: true },
+    include: { item: true },
+  });
+
   res.json({
     user: {
       id: user.id,
@@ -124,6 +145,7 @@ router.get("/me", requireAuth, asyncHandler(async (req: AuthedRequest, res) => {
       gold: user.gold,
       currentStreak: user.currentStreak,
       longestStreak: user.longestStreak,
+      equippedItems: equippedItems.map((i: any) => i.item),
     },
   });
 }));

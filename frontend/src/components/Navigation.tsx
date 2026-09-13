@@ -51,6 +51,9 @@ export function Sidebar() {
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
 
   const heroLevel = user ? Math.max(user.level || 1, computeLevelFromXp(user.xp).level) : 1;
+  const equippedAvatarItem = user?.equippedItems?.find((i) => i.type === "Avatar") || null;
+  const equippedFrameItem = user?.equippedItems?.find((i) => i.type === "Frame") || null;
+  const equippedTitleItem = user?.equippedItems?.find((i) => i.type === "Title") || null;
 
   function toggleSound() {
     const next = !soundOn;
@@ -136,13 +139,19 @@ export function Sidebar() {
             className="flex items-center gap-2.5 p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-arcane/40 transition group"
             title="View Character Profile"
           >
-            <UserAvatar avatarUrl={user.avatarUrl} name={user.name} size="sm" />
+            <UserAvatar
+              avatarUrl={user.avatarUrl}
+              name={user.name}
+              size="sm"
+              equippedAvatar={equippedAvatarItem}
+              equippedFrame={equippedFrameItem}
+            />
             <div className="flex-1 min-w-0 text-left">
               <p className="text-xs font-semibold text-white truncate group-hover:text-gold transition">
                 {user.name}
               </p>
-              <p className="text-[10px] text-slate-400 font-mono">
-                Level {heroLevel} Hero
+              <p className="text-[10px] text-slate-400 font-mono truncate">
+                {equippedTitleItem ? equippedTitleItem.name.replace(/"/g, "") : `Level ${heroLevel} Hero`}
               </p>
             </div>
           </NavLink>
@@ -172,6 +181,9 @@ export function MobileNav() {
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
 
   const heroLevel = user ? Math.max(user.level || 1, computeLevelFromXp(user.xp).level) : 1;
+  const mobileEquippedAvatar = user?.equippedItems?.find((i) => i.type === "Avatar") || null;
+  const mobileEquippedFrame = user?.equippedItems?.find((i) => i.type === "Frame") || null;
+  const mobileEquippedTitle = user?.equippedItems?.find((i) => i.type === "Title") || null;
 
   function toggleSound() {
     const next = !soundOn;
@@ -198,25 +210,30 @@ export function MobileNav() {
   return (
     <>
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-surface/95 backdrop-blur-lg border-t border-white/10 flex justify-around items-center py-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]"
-        aria-label="Mobile navigation"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface/90 backdrop-blur-lg border-t border-white/10 px-3 py-2 flex items-center justify-around"
+        aria-label="Mobile Navigation Bar"
       >
         {primaryMobileItems.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] font-medium transition ${
-                isActive ? "text-arcane font-bold" : "text-slate-400 hover:text-slate-200"
+              `flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition ${
+                isActive ? "text-gold font-bold scale-105" : "text-slate-400 hover:text-white"
               }`
             }
           >
-            <Icon size={18} /> {label}
+            <Icon size={18} />
+            <span className="text-[10px]">{label}</span>
           </NavLink>
         ))}
+
         <button
           onClick={() => setMoreOpen(true)}
-          className="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg text-[10px] font-medium text-slate-400 hover:text-slate-200"
+          className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition ${
+            moreOpen ? "text-gold font-bold scale-105" : "text-slate-400 hover:text-white"
+          }`}
+          aria-label="Open More Realm Menu"
         >
           <Menu size={18} /> More
         </button>
@@ -248,10 +265,18 @@ export function MobileNav() {
                 onClick={() => setMoreOpen(false)}
                 className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/10 hover:border-arcane/40 transition"
               >
-                <UserAvatar avatarUrl={user.avatarUrl} name={user.name} size="md" />
+                <UserAvatar
+                  avatarUrl={user.avatarUrl}
+                  name={user.name}
+                  size="md"
+                  equippedAvatar={mobileEquippedAvatar}
+                  equippedFrame={mobileEquippedFrame}
+                />
                 <div>
                   <p className="text-sm font-semibold text-white">{user.name}</p>
-                  <p className="text-xs text-slate-400">Level {heroLevel} Adventurer</p>
+                  <p className="text-xs text-slate-400">
+                    {mobileEquippedTitle ? mobileEquippedTitle.name.replace(/"/g, "") : `Level ${heroLevel} Adventurer`}
+                  </p>
                 </div>
               </NavLink>
             )}
